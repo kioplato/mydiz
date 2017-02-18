@@ -21,12 +21,12 @@ typedef struct DiNode{
     time_t mtime;        /* time of last modification */
     time_t ctime;	    /* time of last status change */
 
-	char isDir           /* 0 -> is File , 1 -> is Directory*/
+	char isDir;           /* 0 -> is File , 1 -> is Directory*/
 
-    int32_t di_num[10];   /* Directory's DiNode */
+    uint32_t di_number[10];   /* Directory's DiNode */
     DirName names[10];	  /* Directory's Name */
 
-    int32_t next;
+    uint32_t next;      /*DiNode Number*/
 
 }DiNode;
 
