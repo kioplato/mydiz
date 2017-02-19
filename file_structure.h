@@ -17,9 +17,9 @@ typedef struct DiNode{
 	uid_t uid;		/* user ID of owner */                 
 	gid_t gid;		/* group ID of owner */
 	off_t size;		/* time of last status change */
-	time_t atime;        /* time of last access */
-    time_t mtime;        /* time of last modification */
-    time_t ctime;	    /* time of last status change */
+	time_t a_time;        /* time of last access */
+    time_t m_time;        /* time of last modification */
+    time_t c_time;	    /* time of last status change */
 
 	bool isDir;           /* 0 -> is File , 1 -> is Directory*/
 
@@ -30,10 +30,16 @@ typedef struct DiNode{
 
 }DiNode;
 
+// typedef struct Block{
+
+	
+
+// }Block;
+
 typedef struct Header{
 
-	uint32_t MetaData_Start;
-	uint32_t MetaData_Last_Block;
+	uint32_t MetaData_Start;       // --- SOS ---- In the begining MetData_Start == MetaData_Last_Block
+	uint32_t MetaData_Last_DiNode;  
 	uint32_t file_size;     
 	
 }Header;
