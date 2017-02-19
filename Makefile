@@ -1,6 +1,6 @@
-OBJS 	= main.o blocktest.o
-SOURCE	= main.c blocktest.c
-HEADER  = block.h
+OBJS 	= main.o blocktest.o metadata_functions.o
+SOURCE	= main.c blocktest.c metadata_functions.c
+HEADER  = file_structure.h metadata_functions.h
 OUT  	= mydiz
 CC		= gcc
 FLAGS   = -g -c  
@@ -14,6 +14,9 @@ main.o: main.c
 
 blocktest.o: blocktest.c
 	$(CC) $(FLAGS) blocktest.c
+
+metadata_functions.o: metadata_functions.c
+	$(CC) $(FLAGS) metadata_functions.c
 
 clean:
 	rm -f $(OBJS) $(OUT)

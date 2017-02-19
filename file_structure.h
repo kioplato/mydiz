@@ -2,12 +2,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdbool.h>
 
-
-#define BLOCK_SIZE 512
+#define BLOCK_SIZE 1024
 typedef struct DirName{
 	
-	char name[64];
+	char name[30];
 
 }DirName;
 
@@ -21,19 +21,18 @@ typedef struct DiNode{
     time_t mtime;        /* time of last modification */
     time_t ctime;	    /* time of last status change */
 
-	char isDir;           /* 0 -> is File , 1 -> is Directory*/
+	bool isDir;           /* 0 -> is File , 1 -> is Directory*/
 
-    uint32_t di_number[10];   /* Directory's DiNode */
-    DirName names[10];	  /* Directory's Name */
+    uint32_t di_number[6];  /*  Directory's DiNode */
+    DirName names[6];	  /* Directory's Name */
 
     uint32_t next;      /*DiNode Number*/
 
 }DiNode;
 
-typedef struct Block{
+typedef struct Header{
 
-	char list_diNode;
+	uint32_t MetaData_Start;
 	
-
-}Block;
+}Header;
 

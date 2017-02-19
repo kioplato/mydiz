@@ -1,11 +1,14 @@
 #include <stdio.h>
-#include "block.h"
+#include <stdbool.h>
+#include "file_structure.h"
 
 int main(int argc,char **argv){
 
-int32_t k;
+uint32_t k;
 
-printf("Size of int: %lu , size of 32int: %lu , pointer: %lu \n",sizeof(int),sizeof(k),sizeof(int32_t*));
+k=0xFFFFFFFF;
+
+printf("Sizes: %lu %d\n",sizeof(DiNode),BLOCK_SIZE);
 
 
 
