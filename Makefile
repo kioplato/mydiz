@@ -7,7 +7,7 @@ CFLAGS=-Wall -g -c
 ## Sets the flags for the linker.
 LDFLAGS=-g -o
 ## Sets the object files.
-OBJ=obj/main.o obj/misc.o
+OBJ=obj/main.o obj/misc.o obj/metadata_functions.o
 ## Sets the executable file.
 EXE=mydiz
 
@@ -29,4 +29,8 @@ obj/main.o: ./src/main.c ./src/misc/misc.h
 
 obj/misc.o: ./src/misc/misc.h
 	$(CC) $(CFLAGS) ./src/misc/misc.c
+	mv *.o obj/
+
+obj/metadata_functions.o: ./src/metadata/metadata_functions.c
+	$(CC) $(CFLAGS) ./src/metadata/metadata_functions.c
 	mv *.o obj/
