@@ -3,9 +3,9 @@
 ## Sets the compiler.
 CC=gcc
 ## Sets the flags for the compiler.
-CFLAGS=-Wall -g -c
+CFLAGS=-std=c11 -Wall -g -c
 ## Sets the flags for the linker.
-LDFLAGS=-g -o
+LDFLAGS=-std=c11 -g -o
 ## Sets the object files.
 OBJ=obj/main.o obj/misc.o obj/metadata_functions.o
 ## Sets the executable file.

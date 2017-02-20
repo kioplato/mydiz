@@ -1,3 +1,6 @@
+#ifndef FILE_STRUCTURE_H
+#define FILE_STRUCTURE_H
+
 #include <stdint.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -30,11 +33,11 @@ typedef struct DiNode{
 
 }DiNode;
 
-// typedef struct Block{
-
+typedef struct Block{
 	
+	DiNode* table;
 
-// }Block;
+}Block;
 
 typedef struct Header{
 
@@ -44,3 +47,4 @@ typedef struct Header{
 	
 }Header;
 
+#endif
