@@ -12,6 +12,7 @@
 
 /* User Libraries */
 #include "misc/misc.h"
+#include "file_structure/file_structure.h"
 /******************/
 
 int32_t main(int32_t argc, char** argv) {
@@ -31,6 +32,16 @@ int32_t main(int32_t argc, char** argv) {
   fprintf(stderr, "cli_args.q:%d\n", cli_args.q);
   fprintf(stderr, "cli_args.p:%d\n", cli_args.p);
   /*END OF DEBUG*/
+
+  uint32_t k;
+
+  k=0xFFFFFFFF;
+
+  printf("Sizes: %lu %d\n",sizeof(DiNode),BLOCK_SIZE);
+
+
+
+  printf("This is the start of a new page , Karibu :D \n");
 
   return EXIT_SUCCESS;
 }
