@@ -53,3 +53,8 @@ void metadata_add_DiNode(char* filename,Header* header,DiNode* DiNode_to_insert)
 
 }
 
+bool print_dinode(DiNode* dinode) {
+  
+  
+  return true;
+}
