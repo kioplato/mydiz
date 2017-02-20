@@ -64,3 +64,12 @@ bool pop_dinode(List* list, DiNode** info) {
   free(tmp_node);
   
   list->numOf_nodes--;
+  
+  return true;
+}
+
+bool print_list(List* list) {
+  
+  
+  return true;
+}
