@@ -7,7 +7,7 @@ CFLAGS=-std=c11 -Wall -g -c
 ## Sets the flags for the linker.
 LDFLAGS=-std=c11 -g -o
 ## Sets the object files.
-OBJ=obj/main.o obj/misc.o obj/metadata_functions.o obj/dinode_list.o
+OBJ=obj/main.o obj/misc.o obj/metadata_functions.o obj/dinode_list.o obj/operations.o 
 ## Sets the executable file.
 EXE=mydiz
 
@@ -37,4 +37,8 @@ obj/metadata_functions.o: ./src/metadata/metadata_functions.c
 
 obj/dinode_list.o: ./src/dinode_list/dinode_list.c ./src/dinode_list/dinode_list.h
 	$(CC) $(CFLAGS) ./src/dinode_list/dinode_list.c
+	mv *.o obj/
+
+obj/operations.o: ./src/operations/operations.c ./src/operations/operations.h
+	$(CC) $(CFLAGS) ./src/operations/operations.c
 	mv *.o obj/

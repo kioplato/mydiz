@@ -21,6 +21,9 @@ bool extract_archive();
 /* Comresses a file. */
 bool compress_file();
 
+/* Uncomresses a file. */
+bool uncompress_file();
+
 /* Deletes a file or directory. */
 bool delete_entity();
 

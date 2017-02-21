@@ -9,6 +9,10 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 /********************/
 
 /* User Libraries */
@@ -41,8 +45,32 @@ bool extract_archive() {
   return true;
 }
 
-bool compress_file() {
-  
+bool compress_file(char* filename) {
+int status;
+
+  if (fork() == 0)
+  {
+    execvp("gzip",(char *[]){ "gzip",filename,NULL });
+  }
+  else
+  {
+    wait(&status);
+  }
+  return true;
+}
+
+bool uncompress_file(char* filename){
+int status;
+
+  if (fork() == 0)
+  {
+    execvp("gunzip",(char *[]){ "gzip",filename,NULL });
+  }
+  else
+  {
+    wait(&status);
+  }
+
   return true;
 }
 

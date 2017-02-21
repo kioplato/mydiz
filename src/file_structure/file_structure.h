@@ -15,7 +15,7 @@ typedef struct DirName{
 }DirName;
 
 typedef struct DiNode{
-
+	char name[32];
 	mode_t mode;    /* protection */
 	uid_t uid;		/* user ID of owner */                 
 	gid_t gid;		/* group ID of owner */
