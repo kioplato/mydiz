@@ -149,6 +149,7 @@ bool create_archive(Cli_args cli_args) {
 
   print_list(&list);
 
+  /* TESTING */
   DIR* opened_dir = NULL;
   opened_dir = opendir(cli_args.list_of_files[0]);
   chdir(cli_args.list_of_files[0]);
@@ -165,6 +166,7 @@ bool create_archive(Cli_args cli_args) {
       printf("It's a dir: %d.\n", S_ISDIR(my_stat.st_mode));
     }
   }
+  /* END OF TESTING */
 
   for(int32_t candidate = 0; candidate < cli_args.numOf_files; candidate++) {
     /*DEBUG*/printf("Working on %d %s list_of_files.\n", candidate, cli_args.list_of_files[candidate]);
@@ -192,7 +194,7 @@ bool extract_archive() {
 }
 
 bool compress_file(char* filename) {
-int status;
+  int status;
 
   if (fork() == 0)
   {
@@ -206,7 +208,7 @@ int status;
 }
 
 bool uncompress_file(char* filename){
-int status;
+  int status;
 
   if (fork() == 0)
   {
@@ -343,8 +345,7 @@ bool print_hierarchy() {
   return true;
 }
 
-bool copy_to_DiNode(struct stat* the_stat,DiNode* my_dinode)
-{
+bool copy_to_DiNode(struct stat* the_stat,DiNode* my_dinode) {
   my_dinode->mode=the_stat->st_mode;
   my_dinode->uid=the_stat->st_uid;
   my_dinode->gid=the_stat->st_gid;
