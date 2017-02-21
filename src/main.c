@@ -65,6 +65,7 @@ int32_t main(int32_t argc, char** argv) {
   my_block->table=malloc(DiNodes_per_Block*sizeof(DiNode));     // Initialize space for the Block
 
   create_archive(cli_args);
+  
 
   free(my_block->table);
   free(my_block);

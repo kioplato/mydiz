@@ -222,8 +222,28 @@ bool delete_entity() {
   return true;
 }
 
-bool print_metadata() {
+bool print_metadata(char filename,Header* header) {
+
+  int32_t i,ret_getblock;
+  Block* my_block;
+  my_block=malloc(sizeof(Block));
+  DiNodes_per_Block=BLOCK_SIZE / sizeof(DiNode);
+  my_block->table=malloc(DiNodes_per_Block*sizeof(DiNode));     // Initialize space for the Block
   
+  i=0;
+  ret_getblock=metadata_get_block(filename,header,i,my_block);
+  while(ret_getblock != -1)
+  {
+    for(int j=0;j<DiNodes_per_Block;j++)
+    {
+      
+    }
+    i++;
+    ret_getblock=metadata_get_block(filename,header,i,my_block);
+  }
+  
+  free(my_block->table);
+  free(my_block);
   return true;
 }
 
