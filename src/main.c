@@ -43,14 +43,14 @@ int32_t main(int32_t argc, char** argv) {
   int fd,DiNodes_per_Block;
   char filename[50];
   Header* header=malloc(sizeof(Header));
-  
 
   header->MetaData_Start=sizeof(Header);
-  header->MetaData_Last_DiNode=header->MetaData_Start;   // Initialize Header
+  header->MetaData_Last_DiNode=header->MetaData_Start;   
+  header->Last_File=header->MetaData_Start;      // Initialize Header
 
-  strcpy(filename,"myfile.di");
+  strcpy(filename,cli_args.archive_name);
 
-  fd=open(filename,O_CREAT|O_RDONLY,0777);
+  fd=open(filename,O_CREAT|O_RDONLY,0777);        // Create the file
   close(fd);
 
   write_header(filename,header);                 // Write Header in file
@@ -59,6 +59,7 @@ int32_t main(int32_t argc, char** argv) {
   DiNodes_per_Block=BLOCK_SIZE / sizeof(DiNode);
   my_block->table=malloc(DiNodes_per_Block*sizeof(DiNode));     // Initialize space for the Block
 
+  
   
   printf("Holla Amigo, Que Tal ?\n");
 

@@ -41,8 +41,9 @@ typedef struct Block{
 
 typedef struct Header{
 
-	uint32_t MetaData_Start;       // --- SOS ---- In the begining MetData_Start == MetaData_Last_Block
-	uint32_t MetaData_Last_DiNode;  
+	uint32_t MetaData_Start;       
+	uint32_t MetaData_Last_DiNode;
+	uint32_t Last_File; 
 	uint32_t file_size;     
 	
 }Header;

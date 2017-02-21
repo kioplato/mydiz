@@ -11,7 +11,7 @@
 void write_header(char* filename,Header* header)
 {
 	int fd;
-	fd=open(filename,O_WRONLY,PERMS);
+	fd=open(filename,O_WRONLY|O_APPEND,PERMS);
 	write(fd,header,sizeof(Header));
 	close(fd);
 }
@@ -79,7 +79,7 @@ int metadata_get_block(char* filename,Header* header,int block_number,Block* my_
 
 		lseek(fd,header->MetaData_Start + (block_number*BLOCK_SIZE),SEEK_SET);
 
-		ret_read=read(fd,my_block->table,BLOCK_SIZE);
+		ret_read=read(fd,my_block->table,((BLOCK_SIZE/sizeof(DiNode)) * sizeof(DiNode)));
 		
 		if( ret_read > 0)
 		{
@@ -105,4 +105,76 @@ bool print_dinode(DiNode* dinode) {
   
   
   return true;
+}
+
+void insert_file(Header* header,char* our_file,char* file_to_add)  // ---- SOS ---- Check if there is space before inserting
+{
+	int from,to,ret;
+	char buffer[256];
+
+	from=open(file_to_add,O_RDONLY,PERMS);
+	to=open(our_file,O_WRONLY,PERMS);
+	
+	lseek(to,header->Last_File,SEEK_SET);
+
+	ret=read(from,buffer,sizeof(buffer));
+	if(ret < 0)
+	{
+		perror("Error in Reading a file\n");
+		exit(2);
+	}
+
+	header->Last_File+=ret;                    // Changing the pointer
+	while(ret > 0)
+	{
+		write(to,buffer,ret);
+		ret=read(from,buffer,sizeof(buffer));
+		if(ret < 0)
+		{
+			perror("Error in Reading a file\n");
+			exit(2);
+		}
+
+		header->Last_File+=ret;                  // Changing the pointer
+		
+	}
+	
+	close(from);
+	close(to);
+}
+
+void export_file(uint32_t start,uint32_t size,char* filename,char* our_file)
+{
+	int out,in,ret,count;
+	char buffer[256];
+
+	out=open(filename,O_RDWR|O_APPEND|O_CREAT,PERMS);
+	in=open(our_file,O_RDONLY,PERMS);
+
+	lseek(in,start,SEEK_SET);
+	count=0;
+	while(count < size)
+	{
+		if((size-count) < 256)
+		{
+			ret=read(in,buffer,(size-count));
+		}
+		else
+		{
+			ret=read(in,buffer,sizeof(buffer));
+		}
+		
+		if(ret < 0)
+		{
+			perror("Error in Reading a file\n");
+			exit(2);
+		}
+		write(out,buffer,ret);
+
+		count+= ret;
+	}
+
+	close(out);
+	close(in);
+
 }
