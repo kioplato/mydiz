@@ -314,15 +314,18 @@ bool decode_cli_flags(int32_t numOf_args, char** args, Cli_args* cli_args) {
     return false;
   }
   
-  if(numOf_args >= 3)
-    cli_args->archive_name = args[2];
+  if(numOf_args >= 3) {
+    cli_args->archive_name = malloc(sizeof(char) * (strlen(args[2]) + 1));
+    strcpy(cli_args->archive_name, args[2]);
+  }
   
   if(numOf_args >= 4) {
     fprintf(stderr, "We have %d list_of_files.\n", numOf_args - 3);
     cli_args->numOf_files = numOf_args - 3;
     cli_args->list_of_files = malloc(sizeof(char*) * numOf_args - 3);
     for(int32_t file_candidate = 3; file_candidate < numOf_args; file_candidate++) {
-      cli_args->list_of_files[file_candidate - 3] = args[file_candidate];
+      cli_args->list_of_files[file_candidate - 3] = malloc(sizeof(char) * (strlen(args[file_candidate]) + 1));
+      strcpy(cli_args->list_of_files[file_candidate - 3], args[file_candidate]);
     }
   }
   
