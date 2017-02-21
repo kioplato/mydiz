@@ -28,7 +28,7 @@ void read_header(char* filename,Header* header)
 void metadata_add_DiNode(char* filename,Header* header,DiNode* DiNode_to_insert)
 {
 	int fd,diff,dinode_index;
-	char string[1024];
+	char string[BLOCK_SIZE];
 
 	diff=header->MetaData_Last_DiNode - header->MetaData_Start;
 	dinode_index=diff % BLOCK_SIZE;
@@ -104,6 +104,10 @@ int metadata_get_block(char* filename,Header* header,int block_number,Block* my_
 
 bool print_dinode(DiNode* dinode) {
   
+  printf("\n");
+  printf("Mode: %d , Uid: %d , Gid: %d , Size: %jd , A_time: %d , #0: %d , #1: %d , #2: %d , #3: %d, #4: %d , #5: %d \n", dinode->mode, dinode->uid, dinode->gid, dinode->size ,dinode->a_time, dinode->di_number[0],dinode->di_number[1],dinode->di_number[2],dinode->di_number[3],dinode->di_number[4],dinode->di_number[5]);
+  printf("F/D_Name[0]: %s, F/D_Name[1]: %s, F/D_Name[2]: %s,F/D_Name[3]: %s,F/D_Name[4]: %s,F/D_Name[5]: %s , %d\n",dinode->names[0].name, dinode->names[1].name, dinode->names[2].name, dinode->names[3].name, dinode->names[4].name, dinode->names[5].name, dinode->next );
+  printf("\n");
   
   return true;
 }

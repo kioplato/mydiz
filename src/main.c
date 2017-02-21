@@ -62,6 +62,8 @@ int32_t main(int32_t argc, char** argv) {
   DiNodes_per_Block=BLOCK_SIZE / sizeof(DiNode);
   my_block->table=malloc(DiNodes_per_Block*sizeof(DiNode));     // Initialize space for the Block
 
+  
+
   free(my_block->table);
   free(my_block);
   free(header);
