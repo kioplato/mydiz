@@ -28,31 +28,32 @@ bool update(List* list,DiNode* current_dinode,DiNode* new_dinode)
   DiNode* temp;
   Node* temp_node;
   // Initialize itself.
-  strcpy(new_dinode->names[0].name,".");          
+  strcpy(new_dinode->names[0].name,".");
   new_dinode->di_number[0]=list->numOf_nodes;
   new_dinode->numOf_free--;
   // Set Parent.
   strcpy(new_dinode->names[1].name,"..");
   new_dinode->di_number[1]=current_dinode->di_number[0];
   new_dinode->numOf_free--;
-
+  
   push_dinode(list,new_dinode);
-
+  
   temp=current_dinode;
   
   while(temp->next != 0)
   {
     temp_node=list->header_node;
     int32_t Node_id=0;
-
+    
     while(Node_id < temp->next)
     {
       temp_node=temp_node->next_node;
       Node_id++;
     }
-
+    
     temp=temp_node->info;
   }
+  
   if(temp->numOf_free > 0)
   {
     //Put Child's Name.
@@ -70,14 +71,14 @@ bool update(List* list,DiNode* current_dinode,DiNode* new_dinode)
     strcpy(new_for_current->names[0].name,new_dinode->name);
     //Put Child's DiNode ID.
     new_for_current->di_number[0]=new_dinode->di_number[0];
-
+    
     new_for_current->numOf_free--;
-
+    
     temp->next=list->numOf_nodes;
-
+    
     push_dinode(list,new_for_current);
   }
-
+  
   return true;
 }
 
