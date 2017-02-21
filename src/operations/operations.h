@@ -7,10 +7,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 /********************/
 
+/* User Libraries */
+#include "../file_structure/file_structure.h"
+/******************/
+
 /* Creates archive using a list_of_files. */
-bool create_archive();
+bool create_archive(const char* archive_name, const char** list_of_files, const int32_t numOf_files);
 
 /* Appends the file or directory to the archive. */
 bool append_file();
@@ -19,10 +26,10 @@ bool append_file();
 bool extract_archive();
 
 /* Comresses a file. */
-bool compress_file();
+bool compress_file(char* filename);
 
 /* Uncomresses a file. */
-bool uncompress_file();
+bool uncompress_file(char* filename);
 
 /* Deletes a file or directory. */
 bool delete_entity();
@@ -35,3 +42,6 @@ bool file_exists();
 
 /* Prints the archive's hierarchy. */
 bool print_hierarchy();
+
+/* Copys to DiNode the Stat we want to keep*/
+bool copy_to_DiNode(struct stat* the_stat,DiNode* my_dinode);

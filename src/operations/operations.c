@@ -12,6 +12,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <unistd.h>
 /********************/
 
@@ -91,5 +92,18 @@ bool file_exists() {
 
 bool print_hierarchy() {
   
+  return true;
+}
+
+bool copy_to_DiNode(struct stat* the_stat,DiNode* my_dinode)
+{
+  my_dinode->mode=the_stat->st_mode;
+  my_dinode->uid=the_stat->st_uid;
+  my_dinode->gid=the_stat->st_gid;
+  my_dinode->size=the_stat->st_size;
+  my_dinode->a_time=the_stat->st_atime;
+  my_dinode->m_time=the_stat->st_mtime;
+  my_dinode->c_time=the_stat->st_ctime;
+
   return true;
 }
