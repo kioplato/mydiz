@@ -56,30 +56,32 @@ bool create_archive(Cli_args cli_args) {
 
   DIR* opened_dir = NULL;
   opened_dir = opendir(cli_args.list_of_files[0]);
+  chdir(cli_args.list_of_files[0]);
   struct dirent* file = NULL;
   while((file = readdir(opened_dir)) != NULL) {
-    printf("Got from the %s dir the filename: %s\n", cli_args.list_of_files[0], file->d_name);
-    struct stat my_stat;
-    if(stat(file->d_name, &my_stat) == 0) {
-      printf("Success on stat.\n");
-    } else {
-      printf("Failed on stat.\n");
+    if(strcmp(file->d_name, ".") != 0 && strcmp(file->d_name, "..") != 0) {
+      printf("Got from the %s dir the filename: %s\n", cli_args.list_of_files[0], file->d_name);
+      struct stat my_stat;
+      if(stat(file->d_name, &my_stat) == 0) {
+        printf("Success on stat.\n");
+      } else {
+        printf("Failed on stat.\n");
+      }
+      printf("It's a dir: %d.\n", S_ISDIR(my_stat.st_mode));
     }
-    printf("It's a dir: %d.\n", S_ISDIR(my_stat.st_mode));
   }
 
-
-
-  //for(int32_t candidate = 0; candidate < cli_args.numOf_files; candidate++) {
-  //  /*DEBUG*/printf("Working on %d %s list_of_files.\n", candidate, cli_args.list_of_files[candidate]);
-  //  
-  //  //Update root.
-  //  //Create new di node and store it in the list.
-  //  //If it's a dir open it.
-  //}
+  for(int32_t candidate = 0; candidate < cli_args.numOf_files; candidate++) {
+    /*DEBUG*/printf("Working on %d %s list_of_files.\n", candidate, cli_args.list_of_files[candidate]);
+    
+    //Update root.
+    //Create new di node and store it in the list.
+    //If it's a dir open it.
+  }
 
   //print_list(&list);
   
+  closedir(opened_dir);
   close(fd);
   return true;
 }
