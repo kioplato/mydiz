@@ -148,9 +148,10 @@ void insert_file(Header* header,char* our_file,char* file_to_add)  // ---- SOS -
 	close(to);
 }
 
-void export_file(uint32_t start,uint32_t size,char* filename,char* our_file)
+void export_file(uint32_t start,off_t size,char* filename,char* our_file)
 {
-	int out,in,ret,count;
+	off_t count;
+	int out,in,ret;
 	char buffer[256];
 
 	out=open(filename,O_RDWR|O_APPEND|O_CREAT,PERMS);

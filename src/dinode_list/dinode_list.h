@@ -2,6 +2,8 @@
  * File : dinode_list.h
  * Purpose : Interface for the dinode list.
 ******************************************************************************/
+#ifndef DINODE_LIST_H
+#define DINODE_LIST_H
 
 /* System Libraries */
 #include <stdio.h>
@@ -30,3 +32,5 @@ bool push_dinode(List* list, DiNode* info);
 bool pop_dinode(List* list, DiNode** info);
 
 bool print_list(List* list);
+
+#endif

@@ -39,7 +39,7 @@ bool push_dinode(List* list, DiNode* info) {
   
   new_node->info = info;
   new_node->next_node = NULL;
-  
+
   Node* tmp_node = NULL;
   tmp_node = list->header_node;
   while(tmp_node->next_node != NULL)
