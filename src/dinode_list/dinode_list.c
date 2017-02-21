@@ -12,6 +12,7 @@
 /* User Libraries */
 #include "dinode_list.h"
 #include "../file_structure/file_structure.h"
+#include "../metadata/metadata_functions.h"
 /******************/
 
 bool list_init(List* list) {
@@ -69,7 +70,16 @@ bool pop_dinode(List* list, DiNode** info) {
 }
 
 bool print_list(List* list) {
+  if(list->numOf_nodes == 0) {
+    printf("Can't print list. List is empty.\n");
+    return false;
+  }
   
+  Node* tmp_node = list->header_node;
+  for(int32_t node_candidate = 0; node_candidate < list->numOf_nodes; node_candidate++) {
+    tmp_node = tmp_node->next_node;
+    print_dinode(tmp_node->info);
+  }
   
   return true;
 }
