@@ -309,6 +309,11 @@ bool decode_cli_flags(int32_t numOf_args, char** args, Cli_args* cli_args) {
     }
   }
   
+  if(cli_args->j == true && cli_args->c == false && cli_args->a == false) {
+    fprintf(stderr, "Error: Can't use -j without -c or -a.\n");
+    return false;
+  }
+  
   if(numOf_args >= 3)
     cli_args->archive_name = args[2];
   
