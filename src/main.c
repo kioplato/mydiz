@@ -27,17 +27,19 @@ int32_t main(int32_t argc, char** argv) {
     return EXIT_FAILURE;
 
   /*DEBUG*/
-  // fprintf(stderr, "cli_args.archive_name:%s\n", cli_args.archive_name);
-  // fprintf(stderr, "cli_args.list_of_files:%s\n", cli_args.list_of_files);
-  // fprintf(stderr, "cli_args.c:%d\n", cli_args.c);
-  // fprintf(stderr, "cli_args.a:%d\n", cli_args.a);
-  // fprintf(stderr, "cli_args.x:%d\n", cli_args.x);
-  // fprintf(stderr, "cli_args.j:%d\n", cli_args.j);
-  // fprintf(stderr, "cli_args.d:%d\n", cli_args.d);
-  // fprintf(stderr, "cli_args.m:%d\n", cli_args.m);
-  // fprintf(stderr, "cli_args.q:%d\n", cli_args.q);
-  // fprintf(stderr, "cli_args.p:%d\n", cli_args.p);
-  // /*END OF DEBUG*/
+  //fprintf(stderr, "cli_args.c:%d\n", cli_args.c);
+  //fprintf(stderr, "cli_args.a:%d\n", cli_args.a);
+  //fprintf(stderr, "cli_args.x:%d\n", cli_args.x);
+  //fprintf(stderr, "cli_args.j:%d\n", cli_args.j);
+  //fprintf(stderr, "cli_args.d:%d\n", cli_args.d);
+  //fprintf(stderr, "cli_args.m:%d\n", cli_args.m);
+  //fprintf(stderr, "cli_args.q:%d\n", cli_args.q);
+  //fprintf(stderr, "cli_args.p:%d\n", cli_args.p);
+  //fprintf(stderr, "cli_args.archive_name:%s\n", cli_args.archive_name);
+  //for(int32_t file_candidate = 0; file_candidate < cli_args.numOf_files; file_candidate++) {
+  //  fprintf(stderr, "cli_args->list_of_files[%d]:%s.\n", file_candidate, cli_args.list_of_files[file_candidate]);
+  //}
+  /*END OF DEBUG*/
 
   Block* my_block;
   int fd,DiNodes_per_Block;

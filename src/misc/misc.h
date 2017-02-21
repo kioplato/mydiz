@@ -28,7 +28,8 @@ typedef struct Cli_args {
   bool p;
   
   char* archive_name;
-  char* list_of_files;
+  char** list_of_files;
+  int32_t numOf_files;
 } Cli_args;
 /*******************/
 

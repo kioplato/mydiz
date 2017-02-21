@@ -14,6 +14,12 @@
 #include "misc.h"
 /******************/
 
+const char *get_filename_ext(const char *filename) {
+    const char *dot = strrchr(filename, '.');
+    if(!dot || dot == filename) return "";
+    return dot + 1;
+}
+
 void print_flags() {
   printf("The flags are:\n");
   printf("  -c : Archives the file system entities that are provided by the <list_of_files/dirs>");
@@ -46,15 +52,17 @@ void print_flags() {
 }
 
 bool decode_cli_flags(int32_t numOf_args, char** args, Cli_args* cli_args) {
-  if(numOf_args < 3 || numOf_args > 4) {
+  if(numOf_args < 3) {
     fprintf(stderr, "Error: Invalid command line flags. Required 2 to 3 flags.\n");
     fprintf(stderr, "Note: Only %d were provided.\n", numOf_args);
     print_flags();
     return false;
   }
   
-  /*DEBUG*/printf("The flags are:%s\n", args[1]);
-  /*DEBUG*/printf("The length of the args[1] is:%ld\n", strlen(args[1]));
+  if(strcmp(get_filename_ext(args[2]), "di") != 0) {
+    fprintf(stderr, "Error: The file must have a .di extension.\n");
+    return false;
+  }
   
   cli_args->c = false;
   cli_args->a = false;
@@ -304,8 +312,14 @@ bool decode_cli_flags(int32_t numOf_args, char** args, Cli_args* cli_args) {
   if(numOf_args >= 3)
     cli_args->archive_name = args[2];
   
-  if(numOf_args == 4)
-    cli_args->list_of_files = args[3];
+  if(numOf_args >= 4) {
+    fprintf(stderr, "We have %d list_of_files.\n", numOf_args - 3);
+    cli_args->numOf_files = numOf_args - 3;
+    cli_args->list_of_files = malloc(sizeof(char*) * numOf_args - 3);
+    for(int32_t file_candidate = 3; file_candidate < numOf_args; file_candidate++) {
+      cli_args->list_of_files[file_candidate - 3] = args[file_candidate];
+    }
+  }
   
   return true;
 }
