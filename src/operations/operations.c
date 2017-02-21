@@ -28,31 +28,32 @@ bool update(List* list,DiNode* current_dinode,DiNode* new_dinode)
   DiNode* temp;
   Node* temp_node;
   // Initialize itself.
-  strcpy(new_dinode->names[0].name,".");          
+  strcpy(new_dinode->names[0].name,".");
   new_dinode->di_number[0]=list->numOf_nodes;
   new_dinode->numOf_free--;
   // Set Parent.
   strcpy(new_dinode->names[1].name,"..");
   new_dinode->di_number[1]=current_dinode->di_number[0];
   new_dinode->numOf_free--;
-
+  
   push_dinode(list,new_dinode);
-
+  
   temp=current_dinode;
   
   while(temp->next != 0)
   {
     temp_node=list->header_node;
     int32_t Node_id=0;
-
+    
     while(Node_id < temp->next)
     {
       temp_node=temp_node->next_node;
       Node_id++;
     }
-
+    
     temp=temp_node->info;
   }
+  
   if(temp->numOf_free > 0)
   {
     //Put Child's Name.
@@ -70,14 +71,14 @@ bool update(List* list,DiNode* current_dinode,DiNode* new_dinode)
     strcpy(new_for_current->names[0].name,new_dinode->name);
     //Put Child's DiNode ID.
     new_for_current->di_number[0]=new_dinode->di_number[0];
-
+    
     new_for_current->numOf_free--;
-
+    
     temp->next=list->numOf_nodes;
-
+    
     push_dinode(list,new_for_current);
   }
-
+  
   return true;
 }
 
@@ -150,30 +151,32 @@ bool create_archive(Cli_args cli_args) {
 
   DIR* opened_dir = NULL;
   opened_dir = opendir(cli_args.list_of_files[0]);
+  chdir(cli_args.list_of_files[0]);
   struct dirent* file = NULL;
   while((file = readdir(opened_dir)) != NULL) {
-    printf("Got from the %s dir the filename: %s\n", cli_args.list_of_files[0], file->d_name);
-    struct stat my_stat;
-    if(stat(file->d_name, &my_stat) == 0) {
-      printf("Success on stat.\n");
-    } else {
-      printf("Failed on stat.\n");
+    if(strcmp(file->d_name, ".") != 0 && strcmp(file->d_name, "..") != 0) {
+      printf("Got from the %s dir the filename: %s\n", cli_args.list_of_files[0], file->d_name);
+      struct stat my_stat;
+      if(stat(file->d_name, &my_stat) == 0) {
+        printf("Success on stat.\n");
+      } else {
+        printf("Failed on stat.\n");
+      }
+      printf("It's a dir: %d.\n", S_ISDIR(my_stat.st_mode));
     }
-    printf("It's a dir: %d.\n", S_ISDIR(my_stat.st_mode));
   }
 
-
-
-  //for(int32_t candidate = 0; candidate < cli_args.numOf_files; candidate++) {
-  //  /*DEBUG*/printf("Working on %d %s list_of_files.\n", candidate, cli_args.list_of_files[candidate]);
-  //  
-  //  //Update root.
-  //  //Create new di node and store it in the list.
-  //  //If it's a dir open it.
-  //}
+  for(int32_t candidate = 0; candidate < cli_args.numOf_files; candidate++) {
+    /*DEBUG*/printf("Working on %d %s list_of_files.\n", candidate, cli_args.list_of_files[candidate]);
+    
+    //Update root.
+    //Create new di node and store it in the list.
+    //If it's a dir open it.
+  }
 
   //print_list(&list);
   
+  closedir(opened_dir);
   close(fd);
   return true;
 }
