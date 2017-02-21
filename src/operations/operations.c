@@ -232,6 +232,8 @@ bool create_archive(Cli_args cli_args) {
   //closedir(opened_dir);
   close(fd);
   
+  write_header(filename,header);                 // Write Header in file
+
   return true;
 }
 
