@@ -14,6 +14,12 @@
 #include "misc.h"
 /******************/
 
+const char *get_filename_ext(const char *filename) {
+    const char *dot = strrchr(filename, '.');
+    if(!dot || dot == filename) return "";
+    return dot + 1;
+}
+
 void print_flags() {
   printf("The flags are:\n");
   printf("  -c : Archives the file system entities that are provided by the <list_of_files/dirs>");
