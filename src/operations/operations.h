@@ -9,8 +9,12 @@
 #include <stdbool.h>
 /********************/
 
+/* User Libraries */
+#include "../misc/misc.h"
+/******************/
+
 /* Creates archive using a list_of_files. */
-bool create_archive();
+bool create_archive(Cli_args cli_args);
 
 /* Appends the file or directory to the archive. */
 bool append_file();

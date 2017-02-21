@@ -9,15 +9,25 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
+#include <sys/types.h>
+#include <dirent.h>
 /********************/
 
 /* User Libraries */
 #include "operations.h"
 #include "../file_structure/file_structure.h"
+#include "../misc/misc.h"
+#include "../dinode_list/dinode_list.h"
 /******************/
 
-bool create_archive(const char* archive_name, const char** list_of_files, const int32_t numOf_files) {
-  int32_t fd = open(archive_name, O_WRONLY | O_CREAT, 0777);
+//bool add_files_recursive(List* list, DiNode* root, ) {
+//
+//  return true;
+//}
+
+bool create_archive(Cli_args cli_args) {
+  int32_t fd = open(cli_args.archive_name, O_WRONLY | O_CREAT, 0777);
   Header* header = malloc(sizeof(Header));
   write(fd, header, sizeof(Header));
   
@@ -26,6 +36,46 @@ bool create_archive(const char* archive_name, const char** list_of_files, const 
   //files to the .di file and in parallel create and store
   //a dinode in a list of dinodes so we can write the
   //metadata afterwards.
+  
+  List list;
+  list_init(&list);
+  
+  DiNode* root = malloc(sizeof(DiNode));
+  root->isDir = true;
+  strcpy(root->names[0].name, ".");
+  root->di_number[0] = 0;
+  strcpy(root->names[1].name, "..");
+  root->di_number[1] = 0;
+  strcpy(root->name, cli_args.archive_name);
+  push_dinode(&list, root);
+
+  print_list(&list);
+
+  DIR* opened_dir = NULL;
+  opened_dir = opendir(cli_args.list_of_files[0]);
+  struct dirent* file = NULL;
+  while((file = readdir(opened_dir)) != NULL) {
+    printf("Got from the %s dir the filename: %s\n", cli_args.list_of_files[0], file->d_name);
+    struct stat my_stat;
+    if(stat(file->d_name, &my_stat) == 0) {
+      printf("Success on stat.\n");
+    } else {
+      printf("Failed on stat.\n");
+    }
+    printf("It's a dir: %d.\n", S_ISDIR(my_stat.st_mode));
+  }
+
+
+
+  //for(int32_t candidate = 0; candidate < cli_args.numOf_files; candidate++) {
+  //  /*DEBUG*/printf("Working on %d %s list_of_files.\n", candidate, cli_args.list_of_files[candidate]);
+  //  
+  //  //Update root.
+  //  //Create new di node and store it in the list.
+  //  //If it's a dir open it.
+  //}
+
+  //print_list(&list);
   
   close(fd);
   return true;
