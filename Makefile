@@ -39,6 +39,6 @@ obj/dinode_list.o: ./src/dinode_list/dinode_list.c ./src/dinode_list/dinode_list
 	$(CC) $(CFLAGS) ./src/dinode_list/dinode_list.c
 	mv *.o obj/
 
-obj/operations.o: ./src/operations/operations.c
+obj/operations.o: ./src/operations/operations.c ./src/operations/operations.h
 	$(CC) $(CFLAGS) ./src/operations/operations.c
 	mv *.o obj/

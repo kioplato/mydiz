@@ -9,8 +9,8 @@
 
 #define BLOCK_SIZE 1024
 typedef struct DirName{
-	
-	char name[30];
+
+  char name[30];
 
 }DirName;
 

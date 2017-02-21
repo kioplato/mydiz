@@ -11,6 +11,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <stdlib.h>
 /********************/
@@ -19,7 +20,7 @@
 #include "misc/misc.h"
 #include "file_structure/file_structure.h"
 #include "metadata/metadata_functions.h"
-#include "./operations/operations.h"
+#include "operations/operations.h"
 /******************/
 
 int32_t main(int32_t argc, char** argv) {
