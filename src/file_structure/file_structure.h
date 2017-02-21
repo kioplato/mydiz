@@ -15,22 +15,21 @@ typedef struct DirName{
 }DirName;
 
 typedef struct DiNode{
-
-	mode_t mode;    /* protection */
-	uid_t uid;		/* user ID of owner */                 
-	gid_t gid;		/* group ID of owner */
-	off_t size;		/* time of last status change */
-	time_t a_time;        /* time of last access */
-    time_t m_time;        /* time of last modification */
-    time_t c_time;	    /* time of last status change */
-
-	bool isDir;           /* 0 -> is File , 1 -> is Directory*/
-
-    uint32_t di_number[6];  /*  Directory's DiNode */
-    DirName names[6];	  /* Directory's Name */
-
-    uint32_t next;      /*DiNode Number*/
-
+  char name[32];
+  mode_t mode;   /* protection */
+  uid_t uid;     /* user ID of owner */
+  gid_t gid;     /* group ID of owner */
+  off_t size;    /* time of last status change */
+  time_t a_time; /* time of last access */
+  time_t m_time; /* time of last modification */
+  time_t c_time; /* time of last status change */
+  
+  bool isDir;  /* 0 -> is File , 1 -> is Directory */
+  
+  uint32_t di_number[6];  /* Directory's DiNode */
+  DirName names[6];       /* Directory's Name */
+  
+  uint32_t next;  /*DiNode Number*/
 }DiNode;
 
 typedef struct Block{
