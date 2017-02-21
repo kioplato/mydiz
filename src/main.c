@@ -49,6 +49,7 @@ int32_t main(int32_t argc, char** argv) {
   header->MetaData_Start=sizeof(Header);
   header->MetaData_Last_DiNode=header->MetaData_Start;   
   header->Last_File=header->MetaData_Start;      // Initialize Header
+  header->file_size=100;
 
   strcpy(filename,cli_args.archive_name);
 
@@ -61,7 +62,9 @@ int32_t main(int32_t argc, char** argv) {
   DiNodes_per_Block=BLOCK_SIZE / sizeof(DiNode);
   my_block->table=malloc(DiNodes_per_Block*sizeof(DiNode));     // Initialize space for the Block
 
-  
+  free(my_block->table);
+  free(my_block);
+  free(header);
   
   printf("Holla Amigo, Que Tal ?\n");
 
