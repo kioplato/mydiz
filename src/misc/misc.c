@@ -59,8 +59,10 @@ bool decode_cli_flags(int32_t numOf_args, char** args, Cli_args* cli_args) {
     return false;
   }
   
-  /*DEBUG*/printf("The flags are:%s\n", args[1]);
-  /*DEBUG*/printf("The length of the args[1] is:%ld\n", strlen(args[1]));
+  if(strcmp(get_filename_ext(args[2]), "di") != 0) {
+    fprintf(stderr, "Error: The file must have a .di extension.\n");
+    return false;
+  }
   
   cli_args->c = false;
   cli_args->a = false;
