@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <pwd.h>
+#include <grp.h>
 
 #include "../metadata/metadata_functions.h"
 
