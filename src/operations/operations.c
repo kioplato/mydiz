@@ -15,6 +15,9 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
+#include <grp.h>
+#include <pwd.h>
 /********************/
 
 /* User Libraries */
@@ -258,9 +261,9 @@ bool delete_entity() {
   return true;
 }
 
-bool print_metadata(char filename,Header* header) {
+bool print_metadata(char* filename,Header* header) {
 
-  int32_t i,ret_getblock,diff,count;
+  int32_t i,ret_getblock,count,DiNodes_per_Block;
   Block* my_block;
   struct group *grp;
   struct passwd *pwd;
@@ -278,7 +281,7 @@ bool print_metadata(char filename,Header* header) {
     if(count < header->numOf_DiNodes)
     {
       printf("DiNode %d: %s ",count,my_block->table[j].name);
-      if(my_block->table[j]->isDir == true)
+      if(my_block->table[j].isDir == true)
       {
         printf("is directory ");
       }
@@ -320,7 +323,7 @@ bool print_metadata(char filename,Header* header) {
       if(count < header->numOf_DiNodes)
       {
         printf("DiNode %d: %s ",count,my_block->table[j].name);
-        if(my_block->table[j]->isDir == true)
+        if(my_block->table[j].isDir == true)
         {
           printf("is directory ");
         }

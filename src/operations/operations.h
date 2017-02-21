@@ -2,7 +2,8 @@
  * File    : operations.h
  * Purpose : Provides the interface for the operation.c functions.
 ******************************************************************************/
-
+#ifndef OPERATIONS_H
+#define OPERATIONS_H
 /* System Libraries */
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,7 +44,7 @@ bool uncompress_file(char* filename);
 bool delete_entity();
 
 /* Prints the metadata. */
-bool print_metadata();
+bool print_metadata(char* filename,Header* header);
 
 /* Returns true if the file exists and false if it does not. */
 bool file_exists();
@@ -53,3 +54,5 @@ bool print_hierarchy();
 
 /* Copys to DiNode the Stat we want to keep*/
 bool copy_to_DiNode(struct stat* the_stat,DiNode* my_dinode);
+
+#endif
