@@ -59,7 +59,7 @@ int32_t main(int32_t argc, char** argv) {
   close(fd);
 
   write_header(filename,header);                 // Write Header in file
-
+  
   my_block=malloc(sizeof(Block));
   DiNodes_per_Block=BLOCK_SIZE / sizeof(DiNode);
   my_block->table=malloc(DiNodes_per_Block*sizeof(DiNode));     // Initialize space for the Block

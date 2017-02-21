@@ -80,6 +80,8 @@ bool update(List* list,DiNode* current_dinode,DiNode* new_dinode)
     
     temp->next=list->numOf_nodes;
     
+    printf("BEFORE PUSH in Update\n");
+
     push_dinode(list,new_for_current);
   }
   
@@ -150,6 +152,8 @@ bool create_archive(Cli_args cli_args) {
   root->di_number[1] = 0;
   strcpy(root->name, cli_args.archive_name);
   push_dinode(&list, root);
+  root->next=0;
+  root->numOf_free=NUMOF_CHILDS;
   
   print_list(&list);
   
@@ -177,16 +181,22 @@ bool create_archive(Cli_args cli_args) {
     bool zipit = cli_args.j;
     /*DEBUG*/printf("The %s needs to get compressed.\n", cli_args.list_of_files[candidate]);
     struct stat my_stat;
+
     stat(cli_args.list_of_files[candidate], &my_stat);
     bool is_dir = S_ISDIR(my_stat.st_mode);
     printf("%s is a dir: %d.\n", cli_args.list_of_files[candidate], is_dir);
-    if(is_dir) {
+
+    if(is_dir) 
+    {
       add_files_recursive(&list, root, header, zipit, cli_args.archive_name);
-    } else { // It's not a dir.
+    } 
+    else 
+    { // It's not a dir.
       char working_dir[256];
       getcwd(working_dir, 256);
       printf("Working dir:%s.\n", working_dir);
       DiNode* new_dinode = malloc(sizeof(DiNode));
+
       copy_to_DiNode(&my_stat, new_dinode);
       strcpy(new_dinode->name, cli_args.list_of_files[candidate]);
       new_dinode->next = 0;
@@ -199,6 +209,7 @@ bool create_archive(Cli_args cli_args) {
         printf("ZIPIT\n");
         compress_file(cli_args.list_of_files[candidate]);
         strcat(cli_args.list_of_files[candidate], ".gz");
+
         insert_file(header, cli_args.archive_name, cli_args.list_of_files[candidate]);
       } else {
         printf("NO ZIPIT\n");

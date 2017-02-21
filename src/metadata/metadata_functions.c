@@ -119,15 +119,14 @@ void insert_file(Header* header,char* our_file,char* file_to_add)  // ---- SOS -
 	int from,to,ret;
 	char buffer[256];
 
-  printf("FILE_TO_ADD:%s.\n", file_to_add);
+	printf("FILE_TO_ADD:%s.\n", file_to_add);
 
 	from=open(file_to_add, O_RDONLY,PERMS);
 	to=open(our_file,O_WRONLY,PERMS);
-  printf("FROM:%d.\n", from);
-  printf("TO:%d.\n", to);
-  perror("Error printed by errno");
-  //printf("ERRNO is:%d.\n", errno);
-	
+	printf("FROM:%d.\n", from);
+	printf("TO:%d.\n", to);
+
+	printf("%d\n",header,Last_File );
 	lseek(to,header->Last_File,SEEK_SET);
 
 	ret=read(from,buffer,sizeof(buffer));
