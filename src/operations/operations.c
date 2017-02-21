@@ -227,24 +227,107 @@ bool delete_entity() {
 
 bool print_metadata(char filename,Header* header) {
 
-  int32_t i,ret_getblock;
+  int32_t i,ret_getblock,diff,count;
   Block* my_block;
+  struct group *grp;
+  struct passwd *pwd;
+
   my_block=malloc(sizeof(Block));
   DiNodes_per_Block=BLOCK_SIZE / sizeof(DiNode);
   my_block->table=malloc(DiNodes_per_Block*sizeof(DiNode));     // Initialize space for the Block
   
+
   i=0;
+  count=1;
+  ret_getblock=metadata_get_block(filename,header,i,my_block);
+  for(int j=1;j<DiNodes_per_Block;j++)
+  {
+    if(count < header->numOf_DiNodes)
+    {
+      printf("DiNode %d: %s ",count,my_block->table[j].name);
+      if(my_block->table[j]->isDir == true)
+      {
+        printf("is directory ");
+      }
+      else
+      {
+        printf("is file ");
+      }
+
+      grp = getgrgid(my_block->table[j].gid);
+
+      pwd = getpwuid(my_block->table[j].uid);
+
+      printf("with owner: %s, group: %s, access rights: ",pwd->pw_name,grp->gr_name);
+      
+      printf( (my_block->table[j].mode & S_IRUSR) ? "r" : "-");
+      printf( (my_block->table[j].mode & S_IWUSR) ? "w" : "-");
+      printf( (my_block->table[j].mode & S_IXUSR) ? "x" : "-");
+      printf( (my_block->table[j].mode & S_IRGRP) ? "r" : "-");
+      printf( (my_block->table[j].mode & S_IWGRP) ? "w" : "-");
+      printf( (my_block->table[j].mode & S_IXGRP) ? "x" : "-");
+      printf( (my_block->table[j].mode & S_IROTH) ? "r" : "-");
+      printf( (my_block->table[j].mode & S_IWOTH) ? "w" : "-");
+      printf( (my_block->table[j].mode & S_IXOTH) ? "x" : "-");
+      printf("\n");
+
+      count++;
+    }
+    else
+    {
+      break;
+    }
+  }
+  i++;
   ret_getblock=metadata_get_block(filename,header,i,my_block);
   while(ret_getblock != -1)
   {
     for(int j=0;j<DiNodes_per_Block;j++)
     {
-      
+      if(count < header->numOf_DiNodes)
+      {
+        printf("DiNode %d: %s ",count,my_block->table[j].name);
+        if(my_block->table[j]->isDir == true)
+        {
+          printf("is directory ");
+        }
+        else
+        {
+          printf("is file ");
+        }
+        grp = getgrgid(my_block->table[j].gid);
+
+        pwd = getpwuid(my_block->table[j].uid);
+
+        printf("with owner: %s, group: %s, access rights: ",pwd->pw_name,grp->gr_name);
+
+        printf( (my_block->table[j].mode & S_IRUSR) ? "r" : "-");
+        printf( (my_block->table[j].mode & S_IWUSR) ? "w" : "-");
+        printf( (my_block->table[j].mode & S_IXUSR) ? "x" : "-");
+        printf( (my_block->table[j].mode & S_IRGRP) ? "r" : "-");
+        printf( (my_block->table[j].mode & S_IWGRP) ? "w" : "-");
+        printf( (my_block->table[j].mode & S_IXGRP) ? "x" : "-");
+        printf( (my_block->table[j].mode & S_IROTH) ? "r" : "-");
+        printf( (my_block->table[j].mode & S_IWOTH) ? "w" : "-");
+        printf( (my_block->table[j].mode & S_IXOTH) ? "x" : "-");
+        printf("\n");
+
+        count++;
+      }
+      else
+      {
+        break;
+      }
     }
     i++;
     ret_getblock=metadata_get_block(filename,header,i,my_block);
   }
   
+  if(count == 1)
+  {
+    printf("No Meta Data is found, file .di is empty\n");
+  }
+
   free(my_block->table);
   free(my_block);
   return true;

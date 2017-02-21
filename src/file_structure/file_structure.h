@@ -46,7 +46,7 @@ typedef struct Header{
 	uint32_t MetaData_Start;       
 	uint32_t MetaData_Last_DiNode;
 	uint32_t Last_File; 
-	uint32_t file_size;     
+	uint32_t numOf_DiNodes;     
 	
 }Header;
 
