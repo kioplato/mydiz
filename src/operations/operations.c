@@ -88,44 +88,53 @@ bool update(List* list,DiNode* current_dinode,DiNode* new_dinode)
   return true;
 }
 
-bool add_files_recursive(List* list, DiNode* current_dinode, Header* header, bool zipit,char* archive_file_name) {
-  printf("INSIDE ADD_FILES_RECURSIVE.\n");
-  ////OpenDir
-  //while(readdir)
-  //{
-  //  DiNode* new_dinode=malloc(sizeof(DiNode));
-  //  //Stat Here.
-  //  copy_to_DiNode(the_status,new_dinode);
-  //  strcpy(filename,new_dinode->name);
-  //  new_dinode->next=0;
-  //  new_dinode->numOf_free=NUMOF_CHILDS;
+bool add_files_recursive(List* list, DiNode* current_dinode, Header* header, bool zipit, char* archive_file_name_path) {
+  DIR* opened_dir = NULL;
+  opened_dir = opendir(current_dinode->name);
+  chdir(current_dinode->name);
+  struct dirent* file_inDir = NULL;
+  while((file_inDir = readdir(opened_dir)) != NULL) {
+    if(strcmp(file_inDir->d_name, ".") != 0 && strcmp(file_inDir->d_name, "..") != 0) {
+      printf("Got from the %s dir the filename:%s\n", current_dinode->name, file_inDir->d_name);
+      DiNode* new_dinode = malloc(sizeof(DiNode));
+      struct stat my_stat;
+      if(stat(file_inDir->d_name, &my_stat) != 0) {
+        printf("Failed on stat.\n");
+      }
+      copy_to_DiNode(&my_stat, new_dinode);
+      strcpy(new_dinode->name, file_inDir->d_name);
+      new_dinode->next=0;
+      new_dinode->numOf_free=NUMOF_CHILDS;
+      
+      update(list,current_dinode,new_dinode);
+      
+      bool is_dir = S_ISDIR(my_stat.st_mode);
+      if(is_dir == true)
+      {
+        new_dinode->isDir = true;
+        add_files_recursive(list, new_dinode, header, zipit, archive_file_name_path);
+      }
+      else // It's not a dir.
+      {
+        new_dinode->isDir = false;
+        if(zipit)
+        {
+          //cwd Kolpa v2.
+          compress_file(new_dinode->name);
+          strcat(new_dinode->name,".gz");
+          //Path of the achive_file Kolpa twra.
+          insert_file(header, archive_file_name_path, new_dinode->name);
+        }
+        else
+        {
+          //Path of the achive_file Kolpa twra.
+          insert_file(header, archive_file_name_path, new_dinode->name);
+        }
+      }
+    }
+  }
 
-  //  update(list,current_dinode,new_dinode);
-  //  if(isDir)
-  //  {
-  //    //Kolpa Platonas.
-  //    new_dinode->isDir=true;
-  //    add_files_recursive(list,new_dinode,header,zipit,archive_file_name);
-  //  }
-  //  else
-  //  {
-  //    new_dinode->isDir=false;
-  //    if(zipit)
-  //    {
-  //      //cwd Kolpa v2.
-  //      compress_file(current_dinode->name);
-  //      strcat(current_dinode->name,".gz");
-  //      //Path of the achive_file Kolpa twra.
-  //      insert_file(header,archive_file_name,current_dinode->name);
-  //    }
-  //    else
-  //    {
-  //      //Path of the achive_file Kolpa twra.
-  //      insert_file(header,archive_file_name,current_dinode->name);
-  //    }
-  //  }
-  //}
-
+  closedir(opened_dir);
 
   return true;
 }
@@ -134,12 +143,6 @@ bool create_archive(Cli_args cli_args) {
   int32_t fd = open(cli_args.archive_name, O_WRONLY | O_CREAT, 0777);
   Header* header = malloc(sizeof(Header));
   write(fd, header, sizeof(Header));
-  
-  //TODO: Iterate through the list_of_files.
-  //While we iterate we will write the contents of the
-  //files to the .di file and in parallel create and store
-  //a dinode in a list of dinodes so we can write the
-  //metadata afterwards.
   
   List list;
   list_init(&list);
@@ -186,30 +189,39 @@ bool create_archive(Cli_args cli_args) {
     bool is_dir = S_ISDIR(my_stat.st_mode);
     printf("%s is a dir: %d.\n", cli_args.list_of_files[candidate], is_dir);
 
-    if(is_dir) 
+    if(is_dir)
     {
-      add_files_recursive(&list, root, header, zipit, cli_args.archive_name);
+      DiNode* dir_inRoot = malloc(sizeof(DiNode));
+      
+      copy_to_DiNode(&my_stat, dir_inRoot);
+      strcpy(dir_inRoot->name, cli_args.list_of_files[candidate]);
+      dir_inRoot->next = 0;
+      dir_inRoot->numOf_free = NUMOF_CHILDS;
+      
+      update(&list, root, dir_inRoot);
+      dir_inRoot->isDir = false;
+      add_files_recursive(&list, dir_inRoot, header, zipit, cli_args.archive_name);
     } 
-    else 
-    { // It's not a dir.
+    else  // It's not a dir, it's a file.
+    {
       char working_dir[256];
       getcwd(working_dir, 256);
       printf("Working dir:%s.\n", working_dir);
-      DiNode* new_dinode = malloc(sizeof(DiNode));
-
-      copy_to_DiNode(&my_stat, new_dinode);
-      strcpy(new_dinode->name, cli_args.list_of_files[candidate]);
-      new_dinode->next = 0;
-      new_dinode->numOf_free = NUMOF_CHILDS;
+      DiNode* file_inRoot = malloc(sizeof(DiNode));
       
-      update(&list, root, new_dinode);
-      new_dinode->isDir = false;
+      copy_to_DiNode(&my_stat, file_inRoot);
+      strcpy(file_inRoot->name, cli_args.list_of_files[candidate]);
+      file_inRoot->next = 0;
+      file_inRoot->numOf_free = NUMOF_CHILDS;
+      
+      update(&list, root, file_inRoot);
+      file_inRoot->isDir = false;
       
       if(zipit == true) {
         printf("ZIPIT\n");
         compress_file(cli_args.list_of_files[candidate]);
         strcat(cli_args.list_of_files[candidate], ".gz");
-
+        
         insert_file(header, cli_args.archive_name, cli_args.list_of_files[candidate]);
       } else {
         printf("NO ZIPIT\n");
