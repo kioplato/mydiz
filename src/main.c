@@ -29,37 +29,24 @@ int32_t main(int32_t argc, char** argv) {
     return EXIT_FAILURE;
 
   /*DEBUG*/
-  fprintf(stderr, "cli_args.c:%d\n", cli_args.c);
-  fprintf(stderr, "cli_args.a:%d\n", cli_args.a);
-  fprintf(stderr, "cli_args.x:%d\n", cli_args.x);
-  fprintf(stderr, "cli_args.j:%d\n", cli_args.j);
-  fprintf(stderr, "cli_args.d:%d\n", cli_args.d);
-  fprintf(stderr, "cli_args.m:%d\n", cli_args.m);
-  fprintf(stderr, "cli_args.q:%d\n", cli_args.q);
-  fprintf(stderr, "cli_args.p:%d\n", cli_args.p);
-  fprintf(stderr, "cli_args.archive_name:%s\n", cli_args.archive_name);
-  for(int32_t file_candidate = 0; file_candidate < cli_args.numOf_files; file_candidate++) {
-    fprintf(stderr, "cli_args->list_of_files[%d]:%s.\n", file_candidate, cli_args.list_of_files[file_candidate]);
-  }
-  /*END OF DEBUG*/
+  // fprintf(stderr, "cli_args.c:%d\n", cli_args.c);
+  // fprintf(stderr, "cli_args.a:%d\n", cli_args.a);
+  // fprintf(stderr, "cli_args.x:%d\n", cli_args.x);
+  // fprintf(stderr, "cli_args.j:%d\n", cli_args.j);
+  // fprintf(stderr, "cli_args.d:%d\n", cli_args.d);
+  // fprintf(stderr, "cli_args.m:%d\n", cli_args.m);
+  // fprintf(stderr, "cli_args.q:%d\n", cli_args.q);
+  // fprintf(stderr, "cli_args.p:%d\n", cli_args.p);
+  // fprintf(stderr, "cli_args.archive_name:%s\n", cli_args.archive_name);
+  // for(int32_t file_candidate = 0; file_candidate < cli_args.numOf_files; file_candidate++) {
+  //   fprintf(stderr, "cli_args->list_of_files[%d]:%s.\n", file_candidate, cli_args.list_of_files[file_candidate]);
+  // }
+  // /*END OF DEBUG*/
 
   Block* my_block;
-  int fd,DiNodes_per_Block;
-  char filename[50];
-  Header* header=malloc(sizeof(Header));
-
-  header->MetaData_Start=sizeof(Header);
-  header->MetaData_Last_DiNode=header->MetaData_Start;
-  header->Last_File=header->MetaData_Start;      // Initialize Header
-  header->numOf_DiNodes=100;
-
-  strcpy(filename,cli_args.archive_name);
-
-  fd=open(filename,O_CREAT|O_RDONLY,0777);        // Create the file
-  close(fd);
-
-  write_header(filename,header);                 // Write Header in file
+  int DiNodes_per_Block;
   
+   
   my_block=malloc(sizeof(Block));
   DiNodes_per_Block=BLOCK_SIZE / sizeof(DiNode);
   my_block->table=malloc(DiNodes_per_Block*sizeof(DiNode));     // Initialize space for the Block
@@ -69,7 +56,7 @@ int32_t main(int32_t argc, char** argv) {
 
   free(my_block->table);
   free(my_block);
-  free(header);
+  
   
   printf("Holla Amigo, Que Tal ?\n");
 

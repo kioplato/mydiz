@@ -132,15 +132,22 @@ bool add_files_recursive(List* list, DiNode* current_dinode, Header* header, boo
 
 bool create_archive(Cli_args cli_args) {
   int32_t fd = open(cli_args.archive_name, O_WRONLY | O_CREAT, 0777);
+  char filename[50];
+
   Header* header = malloc(sizeof(Header));
-  write(fd, header, sizeof(Header));
-  
-  //TODO: Iterate through the list_of_files.
-  //While we iterate we will write the contents of the
-  //files to the .di file and in parallel create and store
-  //a dinode in a list of dinodes so we can write the
-  //metadata afterwards.
-  
+
+  header->MetaData_Start=sizeof(Header);
+  header->MetaData_Last_DiNode=header->MetaData_Start;
+  header->Last_File=header->MetaData_Start;      // Initialize Header
+  header->numOf_DiNodes=100;
+
+  strcpy(filename,cli_args.archive_name);
+
+  fd=open(filename,O_CREAT|O_RDONLY,0777);        // Create the file
+  close(fd);
+
+  write_header(filename,header);                 // Write Header in file
+
   List list;
   list_init(&list);
   

@@ -126,7 +126,7 @@ void insert_file(Header* header,char* our_file,char* file_to_add)  // ---- SOS -
 	printf("FROM:%d.\n", from);
 	printf("TO:%d.\n", to);
 
-	printf("%d\n",header->Last_File );
+	printf("--------------> %d\n",header->Last_File );
 	lseek(to,header->Last_File,SEEK_SET);
 
 	ret=read(from,buffer,sizeof(buffer));
