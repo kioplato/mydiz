@@ -53,7 +53,7 @@ bool update(List* list,DiNode* current_dinode,DiNode* new_dinode)
       if(temp_node->info->di_number[0] == temp->next)
       {
         break;
-      }    
+      }
       temp_node=temp_node->next_node;
     }
     
@@ -103,6 +103,11 @@ bool update(List* list,DiNode* current_dinode,DiNode* new_dinode)
 }
 
 bool add_files_recursive(List* list, DiNode* current_dinode, Header* header, bool zipit, char* archive_file_name_path) {
+  char working_dir[256];
+  getcwd(working_dir, 256);
+  
+  printf("Working dir:%s.\n", working_dir);
+  
   DIR* opened_dir = NULL;
   opened_dir = opendir(current_dinode->name);
   chdir(current_dinode->name);
@@ -127,6 +132,12 @@ bool add_files_recursive(List* list, DiNode* current_dinode, Header* header, boo
       {
         new_dinode->isDir = true;
         add_files_recursive(list, new_dinode, header, zipit, archive_file_name_path);
+        chdir("..");
+        
+        char working_dir[256];
+        getcwd(working_dir, 256);
+        
+        printf("Working dir:%s.\n", working_dir);
       }
       else // It's not a dir.
       {
@@ -266,7 +277,9 @@ bool create_archive(Cli_args cli_args) {
   //closedir(opened_dir);
   close(fd);
   
-  header->numOf_DiNodes=list.numOf_nodes;
+
+  header->numOf_DiNodes = list.numOf_nodes;
+
   write_header(filename,header);                 // Write Header in file
 
   return true;
@@ -537,6 +550,10 @@ bool copy_to_DiNode(struct stat* the_stat,DiNode* my_dinode) {
   my_dinode->a_time=the_stat->st_atime;
   my_dinode->m_time=the_stat->st_mtime;
   my_dinode->c_time=the_stat->st_ctime;
+
+  for(int32_t candidate = 0; candidate < NUMOF_CHILDS; candidate++) {
+    my_dinode->di_number[candidate] = 0;
+  }
 
   return true;
 }
