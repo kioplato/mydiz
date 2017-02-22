@@ -23,7 +23,7 @@
 bool update(List* list,DiNode* current_dinode,DiNode* new_dinode);
 
 /* Recursive functions that makes updates the List with Metadata and the archive-file with files */
-bool add_files_recursive(List* list, DiNode* current_dinode, Header* header, bool zipit,char* archive_file_name);
+bool add_files_recursive(List* list, DiNode* current_dinode, Header* header, bool zipit,char* archive_file_name_path);
 
 /* Creates archive using a list_of_files. */
 bool create_archive(Cli_args cli_args);
