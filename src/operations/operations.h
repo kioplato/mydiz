@@ -29,7 +29,7 @@ bool add_files_recursive(List* list, DiNode* current_dinode, Header* header, boo
 bool create_archive(Cli_args cli_args);
 
 /* Appends the file or directory to the archive. */
-bool append_file();
+bool append_file(Cli_args cli_args);
 
 /* Extracts the arhive. */
 bool extract_archive(Cli_args cli_args);

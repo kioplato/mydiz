@@ -54,7 +54,7 @@ bool push_dinode(List* list, DiNode* info) {
 
 bool pop_dinode(List* list, DiNode** info) {
   if(list->numOf_nodes == 0) {
-    printf("Error: The list is empty.\n");
+    // printf("Error: The list is empty.\n");
     return false;
   }
   
