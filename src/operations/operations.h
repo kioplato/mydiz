@@ -32,7 +32,7 @@ bool create_archive(Cli_args cli_args);
 bool append_file();
 
 /* Extracts the arhive. */
-bool extract_archive();
+bool extract_archive(Cli_args cli_args);
 
 /* Comresses a file. */
 bool compress_file(char* filename);

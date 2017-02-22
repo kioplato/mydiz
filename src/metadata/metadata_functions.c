@@ -153,14 +153,18 @@ void insert_file(Header* header,char* our_file,char* file_to_add)  // ---- SOS -
 	close(to);
 }
 
-void export_file(uint32_t start,off_t size,char* filename,char* our_file)
+void export_file(uint32_t start, off_t size,char* filename,char* our_file)
 {
 	off_t count;
-	int out,in,ret;
+	int out,in;
+  off_t ret;
 	char buffer[256];
 
 	out=open(filename,O_RDWR|O_APPEND|O_CREAT,PERMS);
 	in=open(our_file,O_RDONLY,PERMS);
+  if(in == -1) {
+    perror("OPEN IN EXPORT FILE");
+  }
 
 	lseek(in,start,SEEK_SET);
 	count=0;
