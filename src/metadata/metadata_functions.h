@@ -11,5 +11,6 @@ void read_header(char* filename,Header* header);
 bool print_dinode(DiNode* dinode);
 void insert_file(Header* header,char* our_file,char* file_to_add);
 void export_file(uint32_t start, off_t size,char* filename,char* our_file);
+void make_space(char* filename,uint32_t bytes_to_move);
 
 #endif

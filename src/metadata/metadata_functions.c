@@ -191,3 +191,26 @@ void export_file(uint32_t start, off_t size,char* filename,char* our_file)
 	close(out);
 	close(in);
 }
+
+void make_space(char* filename,uint32_t bytes_to_move)
+{
+	int32_t fd,DpB,ret;
+	uint32_t temp_pointer;
+	Header* header=malloc(sizeof(Header));
+
+	fd=open(filename,O_RDWR|O_APPEND,PERMS);
+	ret=read(fd,header,sizeof(Header));
+
+	DpB= BLOCK_SIZE / sizeof(DiNode);
+
+	temp_pointer=header->MetaData_Start + (((header->numOf_DiNodes / DpB) -1 )*BLOCK_SIZE);
+
+	printf("I will move to: %d\n",temp_pointer );
+	// lseek(fd,temp_pointer,SEEK_SET); 								// Set Pointer to the last Block
+
+	// ret=read(fd,)
+
+	close(fd);
+	free(header);
+}
+

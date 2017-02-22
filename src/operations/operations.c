@@ -269,10 +269,9 @@ bool create_archive(Cli_args cli_args) {
   //closedir(opened_dir);
   total_file_size=header->Last_File - sizeof(Header);
   
-  
   printf("Total Size: %d \n",total_file_size);
   
-  percent=total_file_size*0.25;
+  percent=total_file_size*0.10;
   printf("Percent = %d\n",percent );
   char* buf=malloc(percent*sizeof(char));
 
@@ -303,8 +302,13 @@ bool append_file() {
 }
 
 bool extract_file_recurcive(char* filename, Header* header, DiNode* root, uint32_t fetch) {
+  printf("IN RECURSIVE going to make dir %s\n",root->name );
   mkdir(root->name, 0777);
   chdir(root->name);
+
+  char working_dir[256];
+  getcwd(working_dir,256);
+  printf("Working on ----> %s\n",working_dir );
 
   Block* main_block = malloc(sizeof(Block));
   Block* auxiliary_block = malloc(sizeof(Block));
@@ -323,6 +327,7 @@ bool extract_file_recurcive(char* filename, Header* header, DiNode* root, uint32
   for(int32_t witness = 2; witness < (NUMOF_CHILDS - root->numOf_free); witness++) {
     block_to_fetch = root->di_number[witness] / DiNodes_per_Block;
     di_node_to_fetch = root->di_number[witness] % DiNodes_per_Block;
+
     if(block_to_fetch != current_block) {
       ret = metadata_get_block(filename, header, block_to_fetch, auxiliary_block);
       if(ret == -1) {
@@ -346,7 +351,7 @@ bool extract_file_recurcive(char* filename, Header* header, DiNode* root, uint32
     block_to_fetch = root->next / DiNodes_per_Block;
     di_node_to_fetch = root->next % DiNodes_per_Block;
     ret = metadata_get_block(filename, header, block_to_fetch, main_block);
-    root = &main_block->table[block_to_fetch];
+    root = &main_block->table[di_node_to_fetch];
     
     for(int32_t witness = 2; witness < (NUMOF_CHILDS - root->numOf_free); witness++) {
       block_to_fetch = root->di_number[witness] / DiNodes_per_Block;
@@ -427,7 +432,7 @@ bool extract_archive(Cli_args cli_args) {
       block_to_fetch = root->next / DiNodes_per_Block;
       di_node_to_fetch = root->next % DiNodes_per_Block;
       ret = metadata_get_block(cli_args.archive_name, header, block_to_fetch, main_block);
-      root = &main_block->table[block_to_fetch];
+      root = &main_block->table[di_node_to_fetch];
       
       for(int32_t witness = 2; witness < (NUMOF_CHILDS - root->numOf_free); witness++) {
         block_to_fetch = root->di_number[witness] / DiNodes_per_Block;
@@ -858,6 +863,8 @@ bool print_hierarchy(char* filename) {
   free(my_block);
   free(my_block2->table);
   free(my_block2);
+
+  make_space(filename,10);
 
   return true;
 }
