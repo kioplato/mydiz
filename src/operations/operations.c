@@ -181,7 +181,7 @@ bool create_archive(Cli_args cli_args) {
   header->Last_File=sizeof(Header);      // Initialize Header
   header->numOf_DiNodes=100;
 
-  strcpy(filename,cli_args.archive_name);
+  strcpy(filename, cli_args.archive_name);
 
   write_header(filename,header);                 // Write Header in file
   printf("Size of header: %lu\n",sizeof(Header) );
