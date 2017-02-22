@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <sys/wait.h>
@@ -110,15 +111,12 @@ bool add_files_recursive(List* list, DiNode* current_dinode, Header* header, boo
   char working_dir[256];
   getcwd(working_dir, 256);
   
-  printf("Working dir:%s.\n", working_dir);
-  
   DIR* opened_dir = NULL;
   opened_dir = opendir(current_dinode->name);
   chdir(current_dinode->name);
   struct dirent* file_inDir = NULL;
   while((file_inDir = readdir(opened_dir)) != NULL) {
     if(strcmp(file_inDir->d_name, ".") != 0 && strcmp(file_inDir->d_name, "..") != 0) {
-      printf("Got from the %s dir the filename:%s\n", current_dinode->name, file_inDir->d_name);
       DiNode* new_dinode = malloc(sizeof(DiNode));
       struct stat my_stat;
       if(stat(file_inDir->d_name, &my_stat) != 0) {
@@ -138,10 +136,6 @@ bool add_files_recursive(List* list, DiNode* current_dinode, Header* header, boo
         add_files_recursive(list, new_dinode, header, zipit, archive_file_name_path);
         chdir("..");
         
-        char working_dir[256];
-        getcwd(working_dir, 256);
-        
-        printf("Working dir:%s.\n", working_dir);
       }
       else // It's not a dir.
       {
@@ -184,14 +178,18 @@ bool create_archive(Cli_args cli_args) {
   strcpy(filename, cli_args.archive_name);
 
   write_header(filename,header);                 // Write Header in file
-  printf("Size of header: %lu\n",sizeof(Header) );
-  
 
   List list;
   list_init(&list);
   
   DiNode* root = malloc(sizeof(DiNode));
   root->isDir = true;
+  root->file_begining = 0;
+  bzero(root->name, sizeof(root->name));
+  for(int32_t candidate = 0; candidate < NUMOF_CHILDS; candidate++) {
+    root->di_number[candidate] = 0;
+    bzero(root->names[candidate].name, sizeof(root->names[candidate].name));
+  }
   strcpy(root->names[0].name, ".");
   root->di_number[0] = 0;
   strcpy(root->names[1].name, "..");
@@ -200,7 +198,14 @@ bool create_archive(Cli_args cli_args) {
   push_dinode(&list, root);
   root->next=0;
   root->numOf_free=NUMOF_CHILDS - 2;
-  
+  root->size = 0;
+  root->a_time = 0;
+  root->m_time = 0;
+  root->c_time = 0;
+  root->gid = 0;
+  root->uid = 0;
+  root->mode = 0;
+  root->isExtended = false;
   
   for(int32_t candidate = 0; candidate < cli_args.numOf_files; candidate++) {
     
@@ -213,7 +218,6 @@ bool create_archive(Cli_args cli_args) {
     
     char working_dir[256];
     getcwd(working_dir,256);
-    printf("----------->The Working Directory is: %s\n",working_dir);
 
     if(is_dir)
     {
@@ -234,7 +238,6 @@ bool create_archive(Cli_args cli_args) {
       char working_dir[256];
       getcwd(working_dir, 256);
       
-      printf("Working dir:%s.\n", working_dir);
       DiNode* file_inRoot = malloc(sizeof(DiNode));
       
       copy_to_DiNode(&my_stat, file_inRoot);
@@ -261,38 +264,29 @@ bool create_archive(Cli_args cli_args) {
       }
     }
   }
-  
-  // print_list(&list);
 
   header->numOf_DiNodes=list.numOf_nodes;
-  printf("MetaData Start: %d, File End: %d, Meta Data End: %d, Num of DiNodes: %d\n",header->MetaData_Start,header->Last_File,header->MetaData_Last_DiNode,header->numOf_DiNodes );
 
   //closedir(opened_dir);
   total_file_size=header->Last_File - sizeof(Header);
   
-  printf("Total Size: %d \n",total_file_size);
-  
-  percent=total_file_size*0.10;
-  printf("Percent = %d\n",percent );
-  char* buf=malloc(percent*sizeof(char));
+  percent = total_file_size * 0.10;
+  char* buf = malloc(percent * sizeof(char));
+  bzero(buf, percent * sizeof(char));
 
-  write(fd,buf,(percent*sizeof(char)));
+  write(fd, buf, (percent * sizeof(char)));
 
   header->MetaData_Start=header->Last_File + (percent*sizeof(char));
   header->MetaData_Last_DiNode=header->MetaData_Start;
 
-  printf("Meta: %d\n",header->MetaData_Start );
-
   DiNode* temp;
   while(pop_dinode(&list,&temp))
   {
-    metadata_add_DiNode(cli_args.archive_name,header,temp);
+    metadata_add_DiNode(cli_args.archive_name, header, temp);
   }
 
-  
   close(fd);
-  write_header(filename,header);                 // Write Header in file
-
+  write_header(filename,header);  // Write Header in file
 
   return true;
 }
@@ -369,7 +363,6 @@ bool append_file(Cli_args cli_args) {
   read(fd,header,sizeof(Header));
   close(fd);
 
-  printf("MetaData_Start is: %d\n",header->MetaData_Start );
   List list;
   list_init(&list);
 
@@ -398,8 +391,6 @@ bool append_file(Cli_args cli_args) {
       {
         Belongs_DiNode=malloc(sizeof(DiNode));
         
-        printf("Going for recursionn----------->\n");
-
         append_recursive(root,token,cli_args.archive_name,header,Belongs_DiNode,child);
       }
 
@@ -420,8 +411,6 @@ bool append_file(Cli_args cli_args) {
           {
             Belongs_DiNode=malloc(sizeof(DiNode));
             
-            printf("Going for recursionn in Extended----------->\n");
-
             append_recursive(root,token,cli_args.archive_name,header,Belongs_DiNode,child);
           }
 
@@ -432,9 +421,6 @@ bool append_file(Cli_args cli_args) {
     int current;
     if(Belongs_DiNode != NULL)
     {
-      printf("Found Belongs Di Node %s  .After Recurssion \n",Belongs_DiNode->name );
-      
-
       block_to_fetch=Belongs_DiNode->di_number[0] / DiNodes_per_Block;
       di_node_to_fetch=Belongs_DiNode->di_number[0] % DiNodes_per_Block;
       metadata_get_block(cli_args.archive_name,header,block_to_fetch, my_block);
@@ -443,7 +429,6 @@ bool append_file(Cli_args cli_args) {
     }
     else
     { 
-      printf("%s is new for this archive\n",cli_args.list_of_files[candidate] );
       current=0;
       metadata_get_block(cli_args.archive_name,header,0, my_block);
       stable_root=&my_block->table[0];
@@ -569,7 +554,6 @@ bool append_file(Cli_args cli_args) {
       }
       else
       {
-        printf("Need to allocate new space\n");
         uint32_t bytes_to_move=(header->Last_File+Di_inRoot->size) * 1.15 ;
         
         // write_header(cli_args.archive_name,header);
@@ -652,21 +636,18 @@ bool extract_file_recurcive(char* filename, Header* header, DiNode* root, uint32
         strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
         char command[256];
         snprintf(command, sizeof(command), "touch -a -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
-        /*DEBUG*/printf("The last access command is:%s\n", command);
         system(command);
 
         // Change last modification time.
         time = gmtime(&auxiliary_block->table[di_node_to_fetch].m_time);
         strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
         snprintf(command, sizeof(command), "touch -m -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
-        /*DEBUG*/printf("The last modification command is:%s\n", command);
         system(command);
 
         // Change last status change.
         time = gmtime(&auxiliary_block->table[di_node_to_fetch].c_time);
         strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
         snprintf(command, sizeof(command), "touch -a -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
-        /*DEBUG*/printf("The last status command is:%s\n", command);
         system(command);
 
         chmod(auxiliary_block->table[di_node_to_fetch].name, auxiliary_block->table[di_node_to_fetch].mode);
@@ -709,21 +690,18 @@ bool extract_file_recurcive(char* filename, Header* header, DiNode* root, uint32
         strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
         char command[256];
         snprintf(command, sizeof(command), "touch -a -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
-        /*DEBUG*/printf("The last access command is:%s\n", command);
         system(command);
 
         // Change last modification time.
         time = gmtime(&auxiliary_block->table[di_node_to_fetch].m_time);
         strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
         snprintf(command, sizeof(command), "touch -m -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
-        /*DEBUG*/printf("The last modification command is:%s\n", command);
         system(command);
 
         // Change last status change.
         time = gmtime(&auxiliary_block->table[di_node_to_fetch].c_time);
         strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
         snprintf(command, sizeof(command), "touch -a -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
-        /*DEBUG*/printf("The last status command is:%s\n", command);
         system(command);
 
         chmod(auxiliary_block->table[di_node_to_fetch].name, auxiliary_block->table[di_node_to_fetch].mode);
@@ -791,21 +769,18 @@ bool extract_archive(Cli_args cli_args) {
         strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
         char command[256];
         snprintf(command, sizeof(command), "touch -a -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
-        /*DEBUG*/printf("The last access command is:%s\n", command);
         system(command);
 
         // Change last modification time.
         time = gmtime(&auxiliary_block->table[di_node_to_fetch].m_time);
         strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
         snprintf(command, sizeof(command), "touch -m -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
-        /*DEBUG*/printf("The last modification command is:%s\n", command);
         system(command);
 
         // Change last status change.
         time = gmtime(&auxiliary_block->table[di_node_to_fetch].c_time);
         strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
         snprintf(command, sizeof(command), "touch -a -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
-        /*DEBUG*/printf("The last status command is:%s\n", command);
         system(command);
 
         chmod(auxiliary_block->table[di_node_to_fetch].name, auxiliary_block->table[di_node_to_fetch].mode);
@@ -845,7 +820,6 @@ bool extract_archive(Cli_args cli_args) {
           strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
           char command[256];
           snprintf(command, sizeof(command), "touch -a -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
-          /*DEBUG*/printf("The last access command is:%s\n", command);
           system(command);
 
           // Change last modification time.
@@ -1134,9 +1108,9 @@ bool print_inside(char* filename,Header* header,DiNode* root,int spaces,uint32_t
   
   for(int l=2;l<(NUMOF_CHILDS - root->numOf_free);l++)
   {
-    for(int i=0; i<(spaces*2); i++)
+    for(int i=0; i<(spaces); i++)
     {
-      printf(" ");
+      printf("| ");
     }
     printf("%s\n",root->names[l].name);
     block_to_fetch=root->di_number[l] / DiNodes_per_Block;
@@ -1169,9 +1143,9 @@ bool print_inside(char* filename,Header* header,DiNode* root,int spaces,uint32_t
 
     for(int l=2;l<(NUMOF_CHILDS - root->numOf_free);l++)
     {
-      for(int i=0; i<(spaces*2); i++)
+      for(int i=0; i<(spaces); i++)
       {
-        printf(" ");
+        printf("| ");
       }
       printf("%s\n",root->names[l].name);
       block_to_fetch=root->di_number[l] / DiNodes_per_Block;
