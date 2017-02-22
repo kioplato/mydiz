@@ -27,6 +27,8 @@
 #include "../dinode_list/dinode_list.h"
 #include "../metadata/metadata_functions.h"
 /******************/
+
+
 bool update(List* list,DiNode* current_dinode,DiNode* new_dinode)
 {
   DiNode* temp;
@@ -74,6 +76,7 @@ bool update(List* list,DiNode* current_dinode,DiNode* new_dinode)
     
     DiNode* new_for_current=malloc(sizeof(DiNode));
     new_for_current->numOf_free=NUMOF_CHILDS;
+    new_for_current->isExtended=true;
 
     strcpy(new_for_current->names[0].name,".");
     new_for_current->di_number[0]=list->numOf_nodes;
@@ -165,7 +168,8 @@ bool add_files_recursive(List* list, DiNode* current_dinode, Header* header, boo
 }
 
 bool create_archive(Cli_args cli_args) {
-  int32_t fd = open(cli_args.archive_name, O_WRONLY | O_CREAT, 0777);
+  int32_t fd = open(cli_args.archive_name, O_WRONLY | O_CREAT |O_APPEND, 0777);
+  uint32_t total_file_size,percent;
   char filename[50];
 
   Header* header = malloc(sizeof(Header));
@@ -177,10 +181,9 @@ bool create_archive(Cli_args cli_args) {
 
   strcpy(filename,cli_args.archive_name);
 
-  fd=open(filename,O_CREAT|O_RDONLY,0777);        // Create the file
-  close(fd);
-
   write_header(filename,header);                 // Write Header in file
+  printf("Size of header: %lu\n",sizeof(Header) );
+  
 
   List list;
   list_init(&list);
@@ -207,6 +210,9 @@ bool create_archive(Cli_args cli_args) {
     stat(cli_args.list_of_files[candidate], &my_stat);
     bool is_dir = S_ISDIR(my_stat.st_mode);
     
+    char working_dir[256];
+    getcwd(working_dir,256);
+    printf("----------->The Working Directory is: %s\n",working_dir);
 
     if(is_dir)
     {
@@ -250,19 +256,41 @@ bool create_archive(Cli_args cli_args) {
         insert_file(header, cli_args.archive_name, cli_args.list_of_files[candidate]);
       }
     }
+    chdir("..");
   }
   
-  print_list(&list);
+  // print_list(&list);
 
   header->numOf_DiNodes=list.numOf_nodes;
   printf("MetaData Start: %d, File End: %d, Meta Data End: %d, Num of DiNodes: %d\n",header->MetaData_Start,header->Last_File,header->MetaData_Last_DiNode,header->numOf_DiNodes );
 
   //closedir(opened_dir);
-  close(fd);
-  
-  header->numOf_DiNodes = list.numOf_nodes;
+  total_file_size=header->Last_File - sizeof(Header);
+ 
 
+  printf("Total Size: %d \n",total_file_size);
+  
+  percent=total_file_size*0.25;
+  printf("Percent = %d\n",percent );
+  char* buf=malloc(percent*sizeof(char));
+
+  write(fd,buf,(percent*sizeof(char)));
+
+  header->MetaData_Start=header->Last_File + (percent*sizeof(char));
+  header->MetaData_Last_DiNode=header->MetaData_Start;
+
+  printf("Meta: %d\n",header->MetaData_Start );
+
+  DiNode* temp;
+  while(pop_dinode(&list,&temp))
+  {
+    metadata_add_DiNode(cli_args.archive_name,header,temp);
+  }
+
+  
+  close(fd);
   write_header(filename,header);                 // Write Header in file
+
 
   return true;
 }
@@ -311,12 +339,17 @@ bool delete_entity() {
   return true;
 }
 
-bool print_metadata(char* filename,Header* header) {
+bool print_metadata(char* filename) {
 
-  int32_t i,ret_getblock,count,DiNodes_per_Block;
+  int32_t i,ret_getblock,count,DiNodes_per_Block,fd;
   Block* my_block;
   struct group *grp;
   struct passwd *pwd;
+  Header* header=malloc(sizeof(Header));
+
+  fd=open(filename,O_RDONLY,0777);
+  read(fd,header,sizeof(Header));
+  close(fd);
 
   my_block=malloc(sizeof(Block));
   DiNodes_per_Block=BLOCK_SIZE / sizeof(DiNode);
@@ -330,32 +363,39 @@ bool print_metadata(char* filename,Header* header) {
   {
     if(count < header->numOf_DiNodes)
     {
-      printf("DiNode %d: %s ",count,my_block->table[j].name);
-      if(my_block->table[j].isDir == true)
-      {
-        printf("is directory ");
+      if(my_block->table[j].isExtended == false)
+      {      
+        printf("DiNode %d: %s ",count,my_block->table[j].name);
+        if(my_block->table[j].isDir == true)
+        {
+          printf("is directory ");
+        }
+        else
+        {
+          printf("is file ");
+        }
+
+        grp = getgrgid(my_block->table[j].gid);
+
+        pwd = getpwuid(my_block->table[j].uid);
+
+        printf("with owner: %s, group: %s, access rights: ",pwd->pw_name,grp->gr_name);
+        
+        printf( (my_block->table[j].mode & S_IRUSR) ? "r" : "-");
+        printf( (my_block->table[j].mode & S_IWUSR) ? "w" : "-");
+        printf( (my_block->table[j].mode & S_IXUSR) ? "x" : "-");
+        printf( (my_block->table[j].mode & S_IRGRP) ? "r" : "-");
+        printf( (my_block->table[j].mode & S_IWGRP) ? "w" : "-");
+        printf( (my_block->table[j].mode & S_IXGRP) ? "x" : "-");
+        printf( (my_block->table[j].mode & S_IROTH) ? "r" : "-");
+        printf( (my_block->table[j].mode & S_IWOTH) ? "w" : "-");
+        printf( (my_block->table[j].mode & S_IXOTH) ? "x" : "-");
+        printf("\n");
       }
       else
       {
-        printf("is file ");
+        printf("DiNode %d: is an extension\n",my_block->table[j].di_number[0]);
       }
-
-      grp = getgrgid(my_block->table[j].gid);
-
-      pwd = getpwuid(my_block->table[j].uid);
-
-      printf("with owner: %s, group: %s, access rights: ",pwd->pw_name,grp->gr_name);
-      
-      printf( (my_block->table[j].mode & S_IRUSR) ? "r" : "-");
-      printf( (my_block->table[j].mode & S_IWUSR) ? "w" : "-");
-      printf( (my_block->table[j].mode & S_IXUSR) ? "x" : "-");
-      printf( (my_block->table[j].mode & S_IRGRP) ? "r" : "-");
-      printf( (my_block->table[j].mode & S_IWGRP) ? "w" : "-");
-      printf( (my_block->table[j].mode & S_IXGRP) ? "x" : "-");
-      printf( (my_block->table[j].mode & S_IROTH) ? "r" : "-");
-      printf( (my_block->table[j].mode & S_IWOTH) ? "w" : "-");
-      printf( (my_block->table[j].mode & S_IXOTH) ? "x" : "-");
-      printf("\n");
 
       count++;
     }
@@ -372,31 +412,38 @@ bool print_metadata(char* filename,Header* header) {
     {
       if(count < header->numOf_DiNodes)
       {
-        printf("DiNode %d: %s ",count,my_block->table[j].name);
-        if(my_block->table[j].isDir == true)
+        if(my_block->table[j].isExtended == false)
         {
-          printf("is directory ");
+          printf("DiNode %d: %s ",count,my_block->table[j].name);
+          if(my_block->table[j].isDir == true)
+          {
+            printf("is directory ");
+          }
+          else
+          {
+            printf("is file ");
+          }
+          grp = getgrgid(my_block->table[j].gid);
+
+          pwd = getpwuid(my_block->table[j].uid);
+
+          printf("with owner: %s, group: %s, access rights: ",pwd->pw_name,grp->gr_name);
+
+          printf( (my_block->table[j].mode & S_IRUSR) ? "r" : "-");
+          printf( (my_block->table[j].mode & S_IWUSR) ? "w" : "-");
+          printf( (my_block->table[j].mode & S_IXUSR) ? "x" : "-");
+          printf( (my_block->table[j].mode & S_IRGRP) ? "r" : "-");
+          printf( (my_block->table[j].mode & S_IWGRP) ? "w" : "-");
+          printf( (my_block->table[j].mode & S_IXGRP) ? "x" : "-");
+          printf( (my_block->table[j].mode & S_IROTH) ? "r" : "-");
+          printf( (my_block->table[j].mode & S_IWOTH) ? "w" : "-");
+          printf( (my_block->table[j].mode & S_IXOTH) ? "x" : "-");
+          printf("\n");
         }
         else
         {
-          printf("is file ");
+          printf("DiNode %d: is an extension\n",my_block->table[j].di_number[0]);
         }
-        grp = getgrgid(my_block->table[j].gid);
-
-        pwd = getpwuid(my_block->table[j].uid);
-
-        printf("with owner: %s, group: %s, access rights: ",pwd->pw_name,grp->gr_name);
-
-        printf( (my_block->table[j].mode & S_IRUSR) ? "r" : "-");
-        printf( (my_block->table[j].mode & S_IWUSR) ? "w" : "-");
-        printf( (my_block->table[j].mode & S_IXUSR) ? "x" : "-");
-        printf( (my_block->table[j].mode & S_IRGRP) ? "r" : "-");
-        printf( (my_block->table[j].mode & S_IWGRP) ? "w" : "-");
-        printf( (my_block->table[j].mode & S_IXGRP) ? "x" : "-");
-        printf( (my_block->table[j].mode & S_IROTH) ? "r" : "-");
-        printf( (my_block->table[j].mode & S_IWOTH) ? "w" : "-");
-        printf( (my_block->table[j].mode & S_IXOTH) ? "x" : "-");
-        printf("\n");
 
         count++;
       }
@@ -414,15 +461,21 @@ bool print_metadata(char* filename,Header* header) {
     printf("No Meta Data is found, file .di is empty\n");
   }
 
+  free(header);
   free(my_block->table);
   free(my_block);
   return true;
 }
 
-bool file_exists(Cli_args* cli_args,Header* header,char* filename) {
+bool file_exists(Cli_args* cli_args,char* filename) {
   
-  int32_t i,ret_getblock,count,DiNodes_per_Block;
+  int32_t i,ret_getblock,count,DiNodes_per_Block,fd;
   Block* my_block;
+  Header* header=malloc(sizeof(Header));
+
+  fd=open(filename,O_RDONLY,0777);
+  read(fd,header,sizeof(Header));
+  close(fd);
 
   my_block=malloc(sizeof(Block));
   DiNodes_per_Block=BLOCK_SIZE / sizeof(DiNode);
@@ -449,7 +502,6 @@ bool file_exists(Cli_args* cli_args,Header* header,char* filename) {
           if(strcmp(cli_args->list_of_files[l],my_block->table[j].name) == 0)
           {
             found[l]=true;
-            break;
           }
         }
 
@@ -484,6 +536,7 @@ bool file_exists(Cli_args* cli_args,Header* header,char* filename) {
     }
   }
 
+  free(header);
   free(my_block->table);
   free(my_block);
   return true;
@@ -532,6 +585,7 @@ bool copy_to_DiNode(struct stat* the_stat,DiNode* my_dinode) {
   my_dinode->a_time=the_stat->st_atime;
   my_dinode->m_time=the_stat->st_mtime;
   my_dinode->c_time=the_stat->st_ctime;
+  my_dinode->isExtended=false;
 
   for(int32_t candidate = 0; candidate < NUMOF_CHILDS; candidate++) {
     my_dinode->di_number[candidate] = 0;

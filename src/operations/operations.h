@@ -44,10 +44,10 @@ bool uncompress_file(char* filename);
 bool delete_entity();
 
 /* Prints the metadata. */
-bool print_metadata(char* filename,Header* header);
+bool print_metadata(char* filename);
 
 /* Returns true if the file exists and false if it does not. */
-bool file_exists();
+bool file_exists(Cli_args* cli_args,char* filename);
 
 /* Prints the archive's hierarchy. */
 bool print_hierarchy();

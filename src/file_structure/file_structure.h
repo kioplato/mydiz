@@ -26,7 +26,7 @@ typedef struct DiNode{
   time_t c_time; /* time of last status change */
   
   bool isDir;  /* 0 -> is File , 1 -> is Directory */
-  
+  bool isExtended;
   uint32_t di_number[NUMOF_CHILDS];  /* Directory's DiNode */
   DirName names[NUMOF_CHILDS];       /* Directory's Name */
   uint32_t numOf_free;

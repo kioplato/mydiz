@@ -51,7 +51,30 @@ int32_t main(int32_t argc, char** argv) {
   DiNodes_per_Block=BLOCK_SIZE / sizeof(DiNode);
   my_block->table=malloc(DiNodes_per_Block*sizeof(DiNode));     // Initialize space for the Block
 
-  create_archive(cli_args);
+  if(cli_args.c)
+  {
+    create_archive(cli_args);
+  }
+  else if(cli_args.a)
+  {
+    append_file();
+  }
+  else if(cli_args.x)
+  {
+    extract_archive();
+  }
+  else if(cli_args.m)
+  {
+    print_metadata(cli_args.archive_name);
+  }
+  else if(cli_args.q)
+  {
+    file_exists(&cli_args,cli_args.archive_name);
+  }
+  else if(cli_args.p)
+  {
+    print_hierarchy(cli_args.archive_name);
+  }
   
 
   free(my_block->table);

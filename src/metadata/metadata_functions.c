@@ -14,7 +14,7 @@
 void write_header(char* filename,Header* header)
 {
 	int fd;
-	fd=open(filename,O_WRONLY|O_APPEND,PERMS);
+	fd=open(filename,O_WRONLY,PERMS);
 	
 	write(fd,header,sizeof(Header));
 	close(fd);
