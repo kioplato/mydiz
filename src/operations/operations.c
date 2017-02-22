@@ -224,7 +224,7 @@ bool create_archive(Cli_args cli_args) {
       dir_inRoot->numOf_free = NUMOF_CHILDS;
       
       update(&list, root, dir_inRoot);
-      dir_inRoot->isDir = false;
+      dir_inRoot->isDir = true;
       add_files_recursive(&list, dir_inRoot, header, zipit, cli_args.archive_name);
     } 
     else  // It's not a dir, it's a file.
@@ -542,37 +542,168 @@ bool file_exists(Cli_args* cli_args,char* filename) {
   return true;
 }
 
-bool print_inside(char* filename,Header* header,uint32_t id_of_dinode,Block* my_block)
+bool print_inside(char* filename,Header* header,DiNode* root,int spaces,uint32_t fetch)
 {
-
-  return true;
-}
-
-bool print_hierarchy(char* filename,Header *header) {
-  int ret_getblock,DiNodes_per_Block;
-  Block* my_block;
-  DiNode* root;
+  
+  Block* my_block,*my_block2;
+  uint32_t current=fetch,block_to_fetch,di_node_to_fetch,ret_getblock;
+  int DiNodes_per_Block;
 
   my_block=malloc(sizeof(Block));
   DiNodes_per_Block=BLOCK_SIZE / sizeof(DiNode);
   my_block->table=malloc(DiNodes_per_Block*sizeof(DiNode)); 
 
+  my_block2=malloc(sizeof(Block));
+  my_block2->table=malloc(DiNodes_per_Block*sizeof(DiNode));   // Too Blocks to keep my Di Node and Find the next one
+  
+  ret_getblock=metadata_get_block(filename,header,current,my_block2);
+  
+  for(int l=2;l<(NUMOF_CHILDS - root->numOf_free);l++)
+  {
+    for(int i=0; i<(spaces*2); i++)
+    {
+      printf(" ");
+    }
+    printf("%s\n",root->names[l].name);
+    block_to_fetch=root->di_number[l] / DiNodes_per_Block;
+    di_node_to_fetch=root->di_number[l] % DiNodes_per_Block;
+
+    if(block_to_fetch != current)
+    {
+      ret_getblock=metadata_get_block(filename,header,block_to_fetch,my_block2);
+      current=block_to_fetch;
+    }
+
+    if(my_block2->table[di_node_to_fetch].isDir == true)
+    {
+      print_inside(filename,header,&my_block2->table[di_node_to_fetch],spaces+1,block_to_fetch);
+    }
+  }
+  while(root->next != 0)
+  {
+    block_to_fetch=root->next / DiNodes_per_Block;
+    di_node_to_fetch=root->next % DiNodes_per_Block;
+
+    ret_getblock=metadata_get_block(filename,header,block_to_fetch,my_block);
+
+    if(ret_getblock == -1)
+    {
+      perror("Error finding the block");
+      break;
+    }
+    root=&my_block->table[di_node_to_fetch];
+
+    for(int l=2;l<(NUMOF_CHILDS - root->numOf_free);l++)
+    {
+      for(int i=0; i<(spaces*2); i++)
+      {
+        printf(" ");
+      }
+      printf("%s\n",root->names[l].name);
+      block_to_fetch=root->di_number[l] / DiNodes_per_Block;
+      di_node_to_fetch=root->di_number[l] % DiNodes_per_Block;
+
+      if(block_to_fetch != current)
+      {
+        ret_getblock=metadata_get_block(filename,header,block_to_fetch,my_block2);
+        current=block_to_fetch;
+      }
+
+      if(my_block2->table[di_node_to_fetch].isDir == true)
+      {
+        print_inside(filename,header,&my_block2->table[di_node_to_fetch],spaces+1,block_to_fetch);
+      }
+    }
+  }
+
+  free(my_block->table);
+  free(my_block);
+  free(my_block2->table);
+  free(my_block2);
+  return true;
+}
+
+bool print_hierarchy(char* filename) {
+  int32_t fd,ret_getblock,DiNodes_per_Block,di_node_to_fetch;
+  uint32_t block_to_fetch,current=0;
+  Block* my_block,*my_block2;
+  DiNode* root;
+
+  Header* header=malloc(sizeof(Header));
+
+  fd=open(filename,O_RDONLY,0777);
+  read(fd,header,sizeof(Header));
+  close(fd);
+
+  my_block=malloc(sizeof(Block));
+  DiNodes_per_Block=BLOCK_SIZE / sizeof(DiNode);
+  my_block->table=malloc(DiNodes_per_Block*sizeof(DiNode)); 
+
+  my_block2=malloc(sizeof(Block));
+  my_block2->table=malloc(DiNodes_per_Block*sizeof(DiNode));    // Two Blocks to keep my Di Node and Find the next one
+
   ret_getblock=metadata_get_block(filename,header,0,my_block);
+  ret_getblock=metadata_get_block(filename,header,0,my_block2);  
+
   if(ret_getblock != -1)
   {
     root=&my_block->table[0];
-    do
+    
+    for(int l=2;l<(NUMOF_CHILDS - root->numOf_free);l++)
     {
-      for(int l=2;l<NUMOF_CHILDS;l++)
-      {
-        // root->isDir
-      }
+      printf("%s\n",root->names[l].name);
+      block_to_fetch=root->di_number[l] / DiNodes_per_Block;
+      di_node_to_fetch=root->di_number[l] % DiNodes_per_Block;
 
-    }while(root->next != 0);
+      if(block_to_fetch != current)
+      {
+        ret_getblock=metadata_get_block(filename,header,block_to_fetch,my_block2);
+        current=block_to_fetch;
+      }
+      
+      if(my_block2->table[di_node_to_fetch].isDir == true)
+      {
+        print_inside(filename,header,&my_block2->table[di_node_to_fetch],1,block_to_fetch);
+      }
+    }
+    while(root->next != 0)
+    {
+      block_to_fetch=root->next / DiNodes_per_Block;
+      di_node_to_fetch=root->next % DiNodes_per_Block;
+
+      ret_getblock=metadata_get_block(filename,header,block_to_fetch,my_block);
+      if(ret_getblock == -1)
+      {
+        perror("Error finding the block");
+        break;
+      }
+      root=&my_block->table[di_node_to_fetch];
+
+      for(int l=2;l<(NUMOF_CHILDS - root->numOf_free);l++)
+      {
+        printf("%s\n",root->names[l].name);
+        block_to_fetch=root->di_number[l] / DiNodes_per_Block;
+        di_node_to_fetch=root->di_number[l] % DiNodes_per_Block;
+
+        if(block_to_fetch != current)
+        {
+          ret_getblock=metadata_get_block(filename,header,block_to_fetch,my_block2);
+          current=block_to_fetch;
+        }
+        if(my_block2->table[di_node_to_fetch].isDir == true)
+        {
+          print_inside(filename,header,&my_block2->table[di_node_to_fetch],1,block_to_fetch);
+        }
+      }
+    }
+    
   }
 
-    free(my_block->table);
-    free(my_block);
+  free(header);
+  free(my_block->table);
+  free(my_block);
+  free(my_block2->table);
+  free(my_block2);
 
   return true;
 }

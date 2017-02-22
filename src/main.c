@@ -46,11 +46,6 @@ int32_t main(int32_t argc, char** argv) {
   Block* my_block;
   int DiNodes_per_Block;
   
-   
-  my_block=malloc(sizeof(Block));
-  DiNodes_per_Block=BLOCK_SIZE / sizeof(DiNode);
-  my_block->table=malloc(DiNodes_per_Block*sizeof(DiNode));     // Initialize space for the Block
-
   if(cli_args.c)
   {
     create_archive(cli_args);
@@ -76,12 +71,5 @@ int32_t main(int32_t argc, char** argv) {
     print_hierarchy(cli_args.archive_name);
   }
   
-
-  free(my_block->table);
-  free(my_block);
-  
-  
-  printf("Holla Amigo, Que Tal ?\n");
-
   return EXIT_SUCCESS;
 }
