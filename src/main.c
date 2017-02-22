@@ -50,7 +50,7 @@ int32_t main(int32_t argc, char** argv) {
   }
   else if(cli_args.a)
   {
-    append_file();
+    append_file(cli_args);
   }
   else if(cli_args.x)
   {
