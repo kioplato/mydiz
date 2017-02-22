@@ -15,6 +15,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <time.h>
 
 #include <grp.h>
 #include <pwd.h>
@@ -344,6 +345,35 @@ bool extract_file_recurcive(char* filename, Header* header, DiNode* root, uint32
     else // It's not a dir, it's a file.
     {
       export_file(auxiliary_block->table[di_node_to_fetch].file_begining, auxiliary_block->table[di_node_to_fetch].size, auxiliary_block->table[di_node_to_fetch].name, filename);
+
+        // Change the stat of the newly exported file.
+        struct tm* time;
+        // Change last access time.
+        time = gmtime(&auxiliary_block->table[di_node_to_fetch].a_time);
+        char formated_time[256];
+        strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
+        char command[256];
+        snprintf(command, sizeof(command), "touch -a -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
+        /*DEBUG*/printf("The last access command is:%s\n", command);
+        system(command);
+
+        // Change last modification time.
+        time = gmtime(&auxiliary_block->table[di_node_to_fetch].m_time);
+        strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
+        snprintf(command, sizeof(command), "touch -m -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
+        /*DEBUG*/printf("The last modification command is:%s\n", command);
+        system(command);
+
+        // Change last status change.
+        time = gmtime(&auxiliary_block->table[di_node_to_fetch].c_time);
+        strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
+        snprintf(command, sizeof(command), "touch -a -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
+        /*DEBUG*/printf("The last status command is:%s\n", command);
+        system(command);
+
+        chmod(auxiliary_block->table[di_node_to_fetch].name, auxiliary_block->table[di_node_to_fetch].mode);
+
+        chown(auxiliary_block->table[di_node_to_fetch].name, auxiliary_block->table[di_node_to_fetch].uid, auxiliary_block->table[di_node_to_fetch].gid);
     }
   }
 
@@ -372,6 +402,35 @@ bool extract_file_recurcive(char* filename, Header* header, DiNode* root, uint32
       else // It's not a dir, it's a file.
       {
         export_file(auxiliary_block->table[di_node_to_fetch].file_begining, auxiliary_block->table[di_node_to_fetch].size, auxiliary_block->table[di_node_to_fetch].name, filename);
+
+        // Change the stat of the newly exported file.
+        struct tm* time;
+        // Change last access time.
+        time = gmtime(&auxiliary_block->table[di_node_to_fetch].a_time);
+        char formated_time[256];
+        strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
+        char command[256];
+        snprintf(command, sizeof(command), "touch -a -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
+        /*DEBUG*/printf("The last access command is:%s\n", command);
+        system(command);
+
+        // Change last modification time.
+        time = gmtime(&auxiliary_block->table[di_node_to_fetch].m_time);
+        strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
+        snprintf(command, sizeof(command), "touch -m -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
+        /*DEBUG*/printf("The last modification command is:%s\n", command);
+        system(command);
+
+        // Change last status change.
+        time = gmtime(&auxiliary_block->table[di_node_to_fetch].c_time);
+        strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
+        snprintf(command, sizeof(command), "touch -a -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
+        /*DEBUG*/printf("The last status command is:%s\n", command);
+        system(command);
+
+        chmod(auxiliary_block->table[di_node_to_fetch].name, auxiliary_block->table[di_node_to_fetch].mode);
+
+        chown(auxiliary_block->table[di_node_to_fetch].name, auxiliary_block->table[di_node_to_fetch].uid, auxiliary_block->table[di_node_to_fetch].gid);
       }
     }
   }
@@ -425,6 +484,35 @@ bool extract_archive(Cli_args cli_args) {
       else // It's not a dir, it's a file.
       {
         export_file(auxiliary_block->table[di_node_to_fetch].file_begining, auxiliary_block->table[di_node_to_fetch].size, auxiliary_block->table[di_node_to_fetch].name, cli_args.archive_name);
+        
+        // Change the stat of the newly exported file.
+        struct tm* time;
+        // Change last access time.
+        time = gmtime(&auxiliary_block->table[di_node_to_fetch].a_time);
+        char formated_time[256];
+        strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
+        char command[256];
+        snprintf(command, sizeof(command), "touch -a -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
+        /*DEBUG*/printf("The last access command is:%s\n", command);
+        system(command);
+
+        // Change last modification time.
+        time = gmtime(&auxiliary_block->table[di_node_to_fetch].m_time);
+        strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
+        snprintf(command, sizeof(command), "touch -m -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
+        /*DEBUG*/printf("The last modification command is:%s\n", command);
+        system(command);
+
+        // Change last status change.
+        time = gmtime(&auxiliary_block->table[di_node_to_fetch].c_time);
+        strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
+        snprintf(command, sizeof(command), "touch -a -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
+        /*DEBUG*/printf("The last status command is:%s\n", command);
+        system(command);
+
+        chmod(auxiliary_block->table[di_node_to_fetch].name, auxiliary_block->table[di_node_to_fetch].mode);
+
+        chown(auxiliary_block->table[di_node_to_fetch].name, auxiliary_block->table[di_node_to_fetch].uid, auxiliary_block->table[di_node_to_fetch].gid);
       }
     }
     
@@ -450,6 +538,35 @@ bool extract_archive(Cli_args cli_args) {
         else // It's not a dir, it's a file.
         {
           export_file(auxiliary_block->table[di_node_to_fetch].file_begining, auxiliary_block->table[di_node_to_fetch].size, auxiliary_block->table[di_node_to_fetch].name, cli_args.archive_name);
+
+          // Change the stat of the newly exported file.
+          struct tm* time;
+          // Change last access time.
+          time = gmtime(&auxiliary_block->table[di_node_to_fetch].a_time);
+          char formated_time[256];
+          strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
+          char command[256];
+          snprintf(command, sizeof(command), "touch -a -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
+          /*DEBUG*/printf("The last access command is:%s\n", command);
+          system(command);
+
+          // Change last modification time.
+          time = gmtime(&auxiliary_block->table[di_node_to_fetch].m_time);
+          strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
+          snprintf(command, sizeof(command), "touch -m -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
+          /*DEBUG*/printf("The last modification command is:%s\n", command);
+          system(command);
+
+          // Change last status change.
+          time = gmtime(&auxiliary_block->table[di_node_to_fetch].c_time);
+          strftime(formated_time, sizeof(formated_time), "%Y%m%d%H%M.%S", time);
+          snprintf(command, sizeof(command), "touch -a -t %s %s", formated_time, auxiliary_block->table[di_node_to_fetch].name);
+          /*DEBUG*/printf("The last status command is:%s\n", command);
+          system(command);
+
+          chmod(auxiliary_block->table[di_node_to_fetch].name, auxiliary_block->table[di_node_to_fetch].mode);
+
+          chown(auxiliary_block->table[di_node_to_fetch].name, auxiliary_block->table[di_node_to_fetch].uid, auxiliary_block->table[di_node_to_fetch].gid);
         }
       }
     }
