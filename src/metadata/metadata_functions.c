@@ -107,7 +107,7 @@ int metadata_get_block(char* filename,Header* header,int block_number,Block* my_
 
 bool print_dinode(DiNode* dinode) {
   printf("\n");
-  printf("Name: %s , Mode: %d , Uid: %d , Gid: %d , Size: %jd , A_time: %d , #0: %d , #1: %d , #2: %d , #3: %d, #4: %d , #5: %d \n", dinode->name, dinode->mode, dinode->uid, dinode->gid, dinode->size ,dinode->a_time, dinode->di_number[0],dinode->di_number[1],dinode->di_number[2],dinode->di_number[3],dinode->di_number[4],dinode->di_number[5]);
+  printf("Name: %s , Mode: %d , Uid: %d , Gid: %d , Size: %jd , #0: %d , #1: %d , #2: %d , #3: %d, #4: %d , #5: %d \n", dinode->name, dinode->mode, dinode->uid, dinode->gid, dinode->size, dinode->di_number[0],dinode->di_number[1],dinode->di_number[2],dinode->di_number[3],dinode->di_number[4],dinode->di_number[5]);
   printf("F/D_Name[0]: %s, F/D_Name[1]: %s, F/D_Name[2]: %s,F/D_Name[3]: %s,F/D_Name[4]: %s,F/D_Name[5]: %s , %d\n",dinode->names[0].name, dinode->names[1].name, dinode->names[2].name, dinode->names[3].name, dinode->names[4].name, dinode->names[5].name, dinode->next );
   printf("\n");
   
