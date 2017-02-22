@@ -318,19 +318,13 @@ bool decode_cli_flags(int32_t numOf_args, char** args, Cli_args* cli_args) {
   if(numOf_args >= 3) {
     char absolute_archive_path[256];
     getcwd(absolute_archive_path, 256);
-    printf("absolute_archive_path is:%s\n", absolute_archive_path);
     strcat(absolute_archive_path, "/");
-    printf("absolute_archive_path with / is:%s\n", absolute_archive_path);
     strcat(absolute_archive_path, args[2]);
-    printf("absolute_archive_path is:%s\n", absolute_archive_path);
-    printf("strlen(absolute_archive_path) is:%lu\n", strlen(absolute_archive_path));
     cli_args->archive_name = malloc(sizeof(char) * (strlen(absolute_archive_path) + 1));
     strcpy(cli_args->archive_name, absolute_archive_path);
-    printf("cli_args->archive_name is:%s\n", cli_args->archive_name);
   }
   
   if(numOf_args >= 4) {
-    fprintf(stderr, "We have %d list_of_files.\n", numOf_args - 3);
     cli_args->numOf_files = numOf_args - 3;
     cli_args->list_of_files = malloc(sizeof(char*) * numOf_args - 3);
     for(int32_t file_candidate = 3; file_candidate < numOf_args; file_candidate++) {
