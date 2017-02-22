@@ -33,6 +33,9 @@ typedef struct Cli_args {
 } Cli_args;
 /*******************/
 
+
+const char *get_filename_ext(const char *filename);
+
 bool decode_cli_flags(int32_t, char**, Cli_args*);
 
 #endif
