@@ -194,23 +194,63 @@ void export_file(uint32_t start, off_t size,char* filename,char* our_file)
 
 void make_space(char* filename,uint32_t bytes_to_move)
 {
-	int32_t fd,DpB,ret;
-	uint32_t temp_pointer;
+	int32_t fd_rd,fd_wr,ret,diff,dinode_index,num_of_blocks;
+	int32_t temp_pointer;
 	Header* header=malloc(sizeof(Header));
+	char* Block=malloc(sizeof(char)*BLOCK_SIZE);
+	
 
-	fd=open(filename,O_RDWR|O_APPEND,PERMS);
-	ret=read(fd,header,sizeof(Header));
+	fd_rd=open(filename,O_RDONLY,PERMS);
+	fd_wr=open(filename,O_WRONLY,PERMS);
+	
+	ret=read(fd_rd,header,sizeof(Header));
 
-	DpB= BLOCK_SIZE / sizeof(DiNode);
+	diff=header->MetaData_Last_DiNode - header->MetaData_Start;
+	dinode_index=diff % BLOCK_SIZE;
+	temp_pointer=header->MetaData_Last_DiNode + (BLOCK_SIZE - dinode_index);
+	
 
-	temp_pointer=header->MetaData_Start + (((header->numOf_DiNodes / DpB) -1 )*BLOCK_SIZE);
+	temp_pointer=temp_pointer - BLOCK_SIZE;
+	 								
+	
+	num_of_blocks=diff/BLOCK_SIZE;
 
-	printf("I will move to: %d\n",temp_pointer );
-	// lseek(fd,temp_pointer,SEEK_SET); 								// Set Pointer to the last Block
+	for(int i=0; i<num_of_blocks; i++)
+	{
+		
+		lseek(fd_rd,temp_pointer,SEEK_SET);
+		ret=read(fd_rd,Block,BLOCK_SIZE);
+		
+		if(ret < 0)
+		{
+			perror("Error while creating space in file");
+		}
+		lseek(fd_wr,(temp_pointer+bytes_to_move),SEEK_SET);
+		ret=write(fd_wr,Block,BLOCK_SIZE);
+		
+		temp_pointer= temp_pointer - BLOCK_SIZE;
+		
+	}
+	lseek(fd_rd,temp_pointer,SEEK_SET);
+	ret=read(fd_rd,Block,BLOCK_SIZE);
+	
+	if(ret < 0)
+	{
+		perror("Error while creating space in file");
+	}
+	
+	lseek(fd_wr,(temp_pointer+bytes_to_move),SEEK_SET);
+	write(fd_wr,Block,BLOCK_SIZE);
+	
+	header->MetaData_Start+=bytes_to_move;
+	header->MetaData_Last_DiNode+=bytes_to_move;
+	
+	close(fd_rd);
+	close(fd_wr);
 
-	// ret=read(fd,)
+	write_header(filename,header);
 
-	close(fd);
+	free(Block);
 	free(header);
 }
 
