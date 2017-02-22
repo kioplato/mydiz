@@ -1,0 +1,43 @@
+Operating Systems
+4th Team Project
+
+Name/Surname: Platon-Nikolaos Kiorpelidis
+A.M.:1115201400327
+
+Name/Surname: Ioannis Efthymiou
+A.M.:11152011000023
+
+Our code is implemented in C language. In order to compile it, a configuration file for the make utility is
+provided, named Makefile. 
+
+You can run mydiz with the following flags:
+
+-c 
+In order to create the .di compressed file that flattens all the directories inside and keeps a di-node-list that has all the paths informations. It its followed with all the directories and files to be compressed
+
+-x
+In order to uncompress the .di file bringing in the current working directory all the files and directories in their original form.
+
+-j
+All the files that are kept in our .di compressed file are first compressed and then stored, this flag goes with -c.
+
+-m
+With this flag you can see the DiNode , the permissions , the owener and group of every file and directory that exists in the .di file.
+
+-q
+
+Followed by a list of arguments it answers if the the names of files and directories int the list exists in the .di file.
+
+-p
+
+It prints in an easily understanble way the hierarchy of the directories and files that are kept inside the   .di compressed file.
+
+-a
+We didn't finished the -a but we have created the " make space " function that operates efficiently and creates space in the middle for and grows the file in order to add more inside.
+
+-d
+As it is optional we didn't impelmented.
+
+At the directory meta_data you will find all the functions that operate low level and are responsible for our interface with the file .di.
+
+Recurssion was very useful in our functions we used mostly the idea of DFS. 
