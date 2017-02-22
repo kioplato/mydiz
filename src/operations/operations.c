@@ -981,7 +981,7 @@ bool print_hierarchy(char* filename) {
   free(my_block2->table);
   free(my_block2);
 
-  make_space(filename,10);
+  // make_space(filename,100);
 
   return true;
 }
