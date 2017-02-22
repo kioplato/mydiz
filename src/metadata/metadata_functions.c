@@ -119,7 +119,6 @@ void insert_file(Header* header,char* our_file,char* file_to_add)  // ---- SOS -
 	int from,to,ret;
 	char buffer[256];
 
-	
 
 	from=open(file_to_add, O_RDONLY,PERMS);
 	to=open(our_file,O_WRONLY,PERMS);

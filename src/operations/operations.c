@@ -226,6 +226,7 @@ bool create_archive(Cli_args cli_args) {
       update(&list, root, dir_inRoot);
       dir_inRoot->isDir = true;
       add_files_recursive(&list, dir_inRoot, header, zipit, cli_args.archive_name);
+      chdir("..");
     } 
     else  // It's not a dir, it's a file.
     {
@@ -256,7 +257,6 @@ bool create_archive(Cli_args cli_args) {
         insert_file(header, cli_args.archive_name, cli_args.list_of_files[candidate]);
       }
     }
-    chdir("..");
   }
   
   // print_list(&list);
@@ -300,7 +300,9 @@ bool append_file() {
   return true;
 }
 
-bool extract_archive() {
+bool extract_archive(Cli_args cli_args) {
+
+
   
   return true;
 }

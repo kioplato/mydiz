@@ -49,8 +49,11 @@ bool print_metadata(char* filename);
 /* Returns true if the file exists and false if it does not. */
 bool file_exists(Cli_args* cli_args,char* filename);
 
+/* Recursive function for print hierarchy*/
+bool print_inside(char* filename,Header* header,DiNode* root,int spaces,uint32_t fetch);
+
 /* Prints the archive's hierarchy. */
-bool print_hierarchy();
+bool print_hierarchy(char* filename);
 
 /* Copys to DiNode the Stat we want to keep*/
 bool copy_to_DiNode(struct stat* the_stat,DiNode* my_dinode);
