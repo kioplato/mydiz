@@ -144,6 +144,7 @@ bool add_files_recursive(List* list, DiNode* current_dinode, Header* header, boo
       }
       else // It's not a dir.
       {
+        new_dinode->file_begining = header->Last_File;
         new_dinode->isDir = false;
         if(zipit)
         {
@@ -198,9 +199,8 @@ bool create_archive(Cli_args cli_args) {
   push_dinode(&list, root);
   root->next=0;
   root->numOf_free=NUMOF_CHILDS - 2;
-
   
-
+  
   for(int32_t candidate = 0; candidate < cli_args.numOf_files; candidate++) {
     
     bool zipit = cli_args.j;
@@ -232,7 +232,7 @@ bool create_archive(Cli_args cli_args) {
     {
       char working_dir[256];
       getcwd(working_dir, 256);
-
+      
       printf("Working dir:%s.\n", working_dir);
       DiNode* file_inRoot = malloc(sizeof(DiNode));
       
@@ -243,6 +243,8 @@ bool create_archive(Cli_args cli_args) {
       
       update(&list, root, file_inRoot);
       file_inRoot->isDir = false;
+      
+      file_inRoot->file_begining = header->Last_File;
       
       if(zipit == true) {
         
@@ -266,8 +268,8 @@ bool create_archive(Cli_args cli_args) {
 
   //closedir(opened_dir);
   total_file_size=header->Last_File - sizeof(Header);
- 
-
+  
+  
   printf("Total Size: %d \n",total_file_size);
   
   percent=total_file_size*0.25;
@@ -300,10 +302,160 @@ bool append_file() {
   return true;
 }
 
+bool extract_file_recurcive(char* filename, Header* header, DiNode* root, uint32_t fetch) {
+  mkdir(root->name, 0777);
+  chdir(root->name);
+
+  Block* main_block = malloc(sizeof(Block));
+  Block* auxiliary_block = malloc(sizeof(Block));
+  int32_t DiNodes_per_Block = BLOCK_SIZE/sizeof(DiNode);
+
+  main_block->table = malloc(sizeof(DiNode) * DiNodes_per_Block);
+  auxiliary_block->table = malloc(sizeof(DiNode) * DiNodes_per_Block);
+
+  int32_t current_block = fetch;
+
+  int32_t ret = metadata_get_block(filename, header, current_block, auxiliary_block);
+
+  int32_t block_to_fetch = 0;
+  int32_t di_node_to_fetch = 0;
+
+  for(int32_t witness = 2; witness < (NUMOF_CHILDS - root->numOf_free); witness++) {
+    block_to_fetch = root->di_number[witness] / DiNodes_per_Block;
+    di_node_to_fetch = root->di_number[witness] % DiNodes_per_Block;
+    if(block_to_fetch != current_block) {
+      ret = metadata_get_block(filename, header, block_to_fetch, auxiliary_block);
+      if(ret == -1) {
+        perror("Read in block from file metadata");
+      }
+      current_block = block_to_fetch;
+    }
+
+    if(auxiliary_block->table[di_node_to_fetch].isDir)
+    {
+      extract_file_recurcive(filename, header, &auxiliary_block->table[di_node_to_fetch], current_block);
+      chdir("..");
+    }
+    else // It's not a dir, it's a file.
+    {
+      export_file(auxiliary_block->table[di_node_to_fetch].file_begining, auxiliary_block->table[di_node_to_fetch].size, auxiliary_block->table[di_node_to_fetch].name, filename);
+    }
+  }
+
+  while(root->next != 0) {
+    block_to_fetch = root->next / DiNodes_per_Block;
+    di_node_to_fetch = root->next % DiNodes_per_Block;
+    ret = metadata_get_block(filename, header, block_to_fetch, main_block);
+    root = &main_block->table[block_to_fetch];
+    
+    for(int32_t witness = 2; witness < (NUMOF_CHILDS - root->numOf_free); witness++) {
+      block_to_fetch = root->di_number[witness] / DiNodes_per_Block;
+      di_node_to_fetch = root->di_number[witness] % DiNodes_per_Block;
+      if(block_to_fetch != current_block) {
+        ret = metadata_get_block(filename, header, block_to_fetch, auxiliary_block);
+        if(ret == -1) {
+          perror("Read in block from file metadata");
+        }
+        current_block = block_to_fetch;
+      }
+      
+      if(auxiliary_block->table[di_node_to_fetch].isDir)
+      {
+        extract_file_recurcive(filename, header, &auxiliary_block->table[di_node_to_fetch], current_block);
+        chdir("..");
+      }
+      else // It's not a dir, it's a file.
+      {
+        export_file(auxiliary_block->table[di_node_to_fetch].file_begining, auxiliary_block->table[di_node_to_fetch].size, auxiliary_block->table[di_node_to_fetch].name, filename);
+      }
+    }
+  }
+
+  free(main_block->table);
+  free(main_block);
+  free(auxiliary_block->table);
+  free(auxiliary_block);
+
+  return true;
+}
+
 bool extract_archive(Cli_args cli_args) {
+  Header* header = malloc(sizeof(Header));
+  int32_t fd = open(cli_args.archive_name, O_RDONLY, 0777);
+  read(fd, header, sizeof(Header));
+  close(fd);
 
+  Block* main_block = malloc(sizeof(Block));
+  Block* auxiliary_block = malloc(sizeof(Block));
+  int32_t DiNodes_per_Block = BLOCK_SIZE/sizeof(DiNode);
 
-  
+  main_block->table = malloc(sizeof(DiNode) * DiNodes_per_Block);
+  auxiliary_block->table = malloc(sizeof(DiNode) * DiNodes_per_Block);
+
+  int32_t current_block = 0;
+
+  int32_t ret = metadata_get_block(cli_args.archive_name, header, current_block, main_block);
+  ret = metadata_get_block(cli_args.archive_name, header, current_block, auxiliary_block);
+
+  int32_t block_to_fetch = 0;
+  int32_t di_node_to_fetch = 0;
+
+  DiNode* root = NULL;
+  if(ret != -1) {
+    root = &main_block->table[0];
+
+    for(int32_t witness = 2; witness < (NUMOF_CHILDS - root->numOf_free); witness++) {
+      block_to_fetch = root->di_number[witness] / DiNodes_per_Block;
+      di_node_to_fetch = root->di_number[witness] % DiNodes_per_Block;
+      if(block_to_fetch != current_block) {
+        ret = metadata_get_block(cli_args.archive_name, header, block_to_fetch, auxiliary_block);
+        current_block = block_to_fetch;
+      }
+      
+      if(auxiliary_block->table[di_node_to_fetch].isDir)
+      {
+        extract_file_recurcive(cli_args.archive_name, header, &auxiliary_block->table[di_node_to_fetch], current_block);
+        chdir("..");
+      }
+      else // It's not a dir, it's a file.
+      {
+        export_file(auxiliary_block->table[di_node_to_fetch].file_begining, auxiliary_block->table[di_node_to_fetch].size, auxiliary_block->table[di_node_to_fetch].name, cli_args.archive_name);
+      }
+    }
+    
+    while(root->next != 0) {
+      block_to_fetch = root->next / DiNodes_per_Block;
+      di_node_to_fetch = root->next % DiNodes_per_Block;
+      ret = metadata_get_block(cli_args.archive_name, header, block_to_fetch, main_block);
+      root = &main_block->table[block_to_fetch];
+      
+      for(int32_t witness = 2; witness < (NUMOF_CHILDS - root->numOf_free); witness++) {
+        block_to_fetch = root->di_number[witness] / DiNodes_per_Block;
+        di_node_to_fetch = root->di_number[witness] % DiNodes_per_Block;
+        if(block_to_fetch != current_block) {
+          ret = metadata_get_block(cli_args.archive_name, header, block_to_fetch, auxiliary_block);
+          current_block = block_to_fetch;
+        }
+        
+        if(auxiliary_block->table[di_node_to_fetch].isDir)
+        {
+          extract_file_recurcive(cli_args.archive_name, header, &auxiliary_block->table[di_node_to_fetch], current_block);
+          chdir("..");
+        }
+        else // It's not a dir, it's a file.
+        {
+          export_file(auxiliary_block->table[di_node_to_fetch].file_begining, auxiliary_block->table[di_node_to_fetch].size, auxiliary_block->table[di_node_to_fetch].name, cli_args.archive_name);
+        }
+      }
+    }
+  }
+
+  free(header);
+  free(main_block->table);
+  free(main_block);
+  free(auxiliary_block->table);
+  free(auxiliary_block);
+
   return true;
 }
 

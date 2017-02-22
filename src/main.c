@@ -43,9 +43,7 @@ int32_t main(int32_t argc, char** argv) {
   // }
   // /*END OF DEBUG*/
 
-  Block* my_block;
-  int DiNodes_per_Block;
-  
+
   if(cli_args.c)
   {
     create_archive(cli_args);
@@ -56,7 +54,7 @@ int32_t main(int32_t argc, char** argv) {
   }
   else if(cli_args.x)
   {
-    extract_archive();
+    extract_archive(cli_args);
   }
   else if(cli_args.m)
   {
