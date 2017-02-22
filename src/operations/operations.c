@@ -390,78 +390,150 @@ bool append_file(Cli_args cli_args) {
         }
       }
     }
+
+    int current;
     if(Belongs_DiNode != NULL)
     {
-      // I have the DiNode that needs to be inserted
+      
+      stable_root=Belongs_DiNode;
+
+      block_to_fetch=Belongs_DiNode->di_number[0] / DiNodes_per_Block;
+
+      ret=metadata_get_block(cli_args.archive_name,header,block_to_fetch, my_block);
+      current=block_to_fetch;
     }
     else
     { 
-      
-      int current=0;
+      current=0;
       ret=metadata_get_block(cli_args.archive_name,header,0, my_block);
       DiNode* stable_root=&my_block->table[0];
 
-      while(stable_root->next !=0)
+    }
+
+    while(stable_root->next !=0)
+    {
+      block_to_fetch = stable_root->next / DiNodes_per_Block;
+      di_node_to_fetch = stable_root->next % DiNodes_per_Block;
+      if(current != block_to_fetch)
       {
-        block_to_fetch = stable_root->next / DiNodes_per_Block;
-        di_node_to_fetch = stable_root->next % DiNodes_per_Block;
-        if(current != block_to_fetch)
-        {
-          ret=metadata_get_block(cli_args.archive_name,header,block_to_fetch, my_block);
-          current=block_to_fetch;
-        }
-        stable_root=&my_block->table[di_node_to_fetch];
+        ret=metadata_get_block(cli_args.archive_name,header,block_to_fetch, my_block);
+        current=block_to_fetch;
       }
-      if(stable_root->numOf_free > 0 )
-      {
+      stable_root=&my_block->table[di_node_to_fetch];
+    }
+    
+    struct stat my_stat;
 
+    stat(cli_args.list_of_files[candidate], &my_stat);
+    bool is_dir = S_ISDIR(my_stat.st_mode);
+
+    
+    DiNode* Di_inRoot = malloc(sizeof(DiNode));
+    
+    copy_to_DiNode(&my_stat, Di_inRoot);
+    strcpy(Di_inRoot->name, cli_args.list_of_files[candidate]);
+    Di_inRoot->next = 0;
+    Di_inRoot->numOf_free = NUMOF_CHILDS;
+    
+    strcpy(Di_inRoot->names[0].name,".");
+    strcpy(Di_inRoot->names[1].name,"..");
+    Di_inRoot->di_number[0]=header->numOf_DiNodes;
+    Di_inRoot->di_number[1]=0;
+    Di_inRoot->numOf_free--;
+    Di_inRoot->numOf_free--;
+    
+    header->numOf_DiNodes++;
+    Di_inRoot->isExtended=0;
+
+    push_dinode(list,Di_inRoot);
+
+    if(stable_root->numOf_free > 0)
+    {
+      //Put Child's Name.
+      strcpy(stable_root->names[NUMOF_CHILDS - temp->numOf_free].name,Di_inRoot->name);
+      //Put Child's DiNode ID.
+      stable_root->di_number[NUMOF_CHILDS - temp->numOf_free]=Di_inRoot->di_number[0];
+      
+      stable_root->numOf_free--;
+      
+    }
+    else // Parent Dir doesn't have space for the Child.
+    {
+      
+      DiNode* new_for_current=malloc(sizeof(DiNode));
+      new_for_current->numOf_free=NUMOF_CHILDS;
+      new_for_current->isExtended=true;
+
+      strcpy(new_for_current->names[0].name,".");
+      new_for_current->di_number[0]=header->numOf_DiNodes;
+
+      header->numOf_DiNodes++;
+
+      new_for_current->numOf_free--;
+      // Set Parent.
+      strcpy(new_for_current->names[1].name,"..");
+      new_for_current->di_number[1]=stable_root->di_number[0];
+      new_for_current->numOf_free--;
+
+
+      //Put Child's Name.
+      strcpy(new_for_current->names[2].name,Di_inRoot->name);
+      //Put Child's DiNode ID.
+      new_for_current->di_number[2]=Di_inRoot->di_number[0];
+      
+      new_for_current->numOf_free--;
+      
+      stable_root->next=new_for_current->di_number[0];
+
+      push_dinode(list,new_for_current);
+      
+    }
+
+    overwite_block=stable_root->numOf_nodes[0] / DiNodes_per_Block;
+
+    // Update the root with the new add
+    fd=open(cli_args.archive_name,O_WRONLY,0777);
+    lseek(fd,(header->MetaData_Start+(overwite_block*BLOCK_SIZE)),SEEK_SET);
+    write(fd,my_block,sizeof(Block));
+    close(fd);
+
+    if(is_dir)  // Check if it is dir
+    {
+      Di_inRoot->isDir = true;
+
+      add_files_recursive(&list, Di_inRoot, header,false, cli_args.archive_name);
+      chdir("..");
+    } 
+    else  // It's not a dir, it's a file.
+    { 
+      
+      Di_inRoot->isDir = false;
+
+      if((header->MetaData_Start - header->Last_File) > Di_inRoot.size)
+      {
+        Di_inRoot->file_begining = header->Last_File;
+        
+        insert_file(header, cli_args.archive_name, cli_args.list_of_files[candidate]);
       }
-
-      struct stat my_stat;
-
-      stat(cli_args.list_of_files[candidate], &my_stat);
-      bool is_dir = S_ISDIR(my_stat.st_mode);
-
-      if(is_dir)
+      else
       {
-        DiNode* dir_inRoot = malloc(sizeof(DiNode));
-        
-        copy_to_DiNode(&my_stat, dir_inRoot);
-        strcpy(dir_inRoot->name, cli_args.list_of_files[candidate]);
-        dir_inRoot->next = 0;
-        dir_inRoot->numOf_free = NUMOF_CHILDS;
-        
-        update(&list, root, dir_inRoot);
-        dir_inRoot->isDir = true;
-        add_files_recursive(&list, dir_inRoot, header,false, cli_args.archive_name);
-        chdir("..");
-      } 
-      else  // It's not a dir, it's a file.
-      {
-        char working_dir[256];
-        getcwd(working_dir, 256);
-        
-        printf("Working dir:%s.\n", working_dir);
-        DiNode* file_inRoot = malloc(sizeof(DiNode));
-        
-        copy_to_DiNode(&my_stat, file_inRoot);
-        strcpy(file_inRoot->name, cli_args.list_of_files[candidate]);
-        file_inRoot->next = 0;
-        file_inRoot->numOf_free = NUMOF_CHILDS;
-        
-        update(&list, root, file_inRoot);
-        file_inRoot->isDir = false;
-        
-        file_inRoot->file_begining = header->Last_File;
-          
+        uint32_t bytes_to_move=(header->Last_File+Di_inRoot.size) * 1.15 ;
+
+        make_space(cli_args.archive_name,bytes_to_move);
+
         insert_file(header, cli_args.archive_name, cli_args.list_of_files[candidate]);
       }
     }
-  
 
   }
 
-  
+  DiNode* temp;
+  while(pop_dinode(&list,&temp))
+  {
+    metadata_add_DiNode(cli_args.archive_name,header,temp);
+  }
+
+  write_header(filename,header);     
 
   
   return true;
