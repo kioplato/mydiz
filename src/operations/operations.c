@@ -175,9 +175,9 @@ bool create_archive(Cli_args cli_args) {
 
   Header* header = malloc(sizeof(Header));
 
-  header->MetaData_Start=sizeof(Header);
+  header->MetaData_Start=0;
   header->MetaData_Last_DiNode=header->MetaData_Start;
-  header->Last_File=header->MetaData_Start;      // Initialize Header
+  header->Last_File=sizeof(Header);      // Initialize Header
   header->numOf_DiNodes=100;
 
   strcpy(filename,cli_args.archive_name);
@@ -296,7 +296,172 @@ bool create_archive(Cli_args cli_args) {
   return true;
 }
 
-bool append_file() {
+bool append_recursive(DiNode* root,char* token,char* filename,Header* header,DiNode* Belongs_DiNode,uint32_t child)
+{
+  char s[2] = "/";
+  Block* my_block=malloc(sizeof(Block));
+  int32_t block_to_fetch,di_node_to_fetch;
+  int32_t DiNodes_per_Block=BLOCK_SIZE / sizeof(DiNode);
+  my_block->table=malloc(DiNodes_per_Block*sizeof(DiNode));
+
+  block_to_fetch = root->di_number[child] / DiNodes_per_Block;
+  di_node_to_fetch = root->di_number[child] % DiNodes_per_Block;
+
+  int32_t ret=metadata_get_block(filename,header,block_to_fetch, my_block);
+
+  token=strtok(NULL,s);
+  for(int32_t child = 2; child < (NUMOF_CHILDS - root->numOf_free); child++) 
+  {
+
+  }
+
+  return true;
+}
+
+
+bool append_file(Cli_args cli_args) {
+
+  struct stat st;
+
+  int result = stat(cli_args.archive_name, &st);
+
+  if(result != 0)                 // If archive file doesn't exists
+  {
+    create_archive(cli_args);
+    return false;
+  }
+  
+  Header* header=malloc(sizeof(Header));
+  int fd=open(cli_args.archive_name,O_RDONLY,0777);
+
+  int32_t ret=read(fd,header,sizeof(Header));
+  close(fd);
+
+  List list;
+  char s[2] = "/";
+  char *token;
+  Block* my_block=malloc(sizeof(Block));
+  int32_t block_to_fetch,di_node_to_fetch;
+  int32_t DiNodes_per_Block=BLOCK_SIZE / sizeof(DiNode);
+  my_block->table=malloc(DiNodes_per_Block*sizeof(DiNode)); 
+  DiNode* Belongs_DiNode=NULL;
+
+  ret=metadata_get_block(cli_args.archive_name,header,0, my_block);
+
+  DiNode* root=&my_block->table[0];
+  
+  
+  for(int32_t candidate = 0; candidate < cli_args.numOf_files; candidate++)
+  {
+    Belongs_DiNode=NULL;
+
+    token = strtok(cli_args.list_of_files[candidate], s);
+
+    for(int32_t child = 2; child < (NUMOF_CHILDS - root->numOf_free); child++) 
+    {
+      if(strcmp(token,root->names[child].name) == 0)
+      {
+        Belongs_DiNode=malloc(sizeof(DiNode));
+          
+        append_recursive(root,token,cli_args.archive_name,header,Belongs_DiNode,child);
+      }
+
+    }
+    if(Belongs_DiNode == NULL)
+    {
+      while(root->next != 0)
+      {
+        block_to_fetch = root->next / DiNodes_per_Block;
+        di_node_to_fetch = root->next % DiNodes_per_Block;
+
+        ret=metadata_get_block(cli_args.archive_name,header,block_to_fetch, my_block);
+        root=&my_block->table[di_node_to_fetch];
+
+        for(int32_t child = 2; child < (NUMOF_CHILDS - root->numOf_free); child++) 
+        {
+          if(strcmp(token,root->names[child].name) == 0)
+          {
+            Belongs_DiNode=malloc(sizeof(DiNode));
+
+            append_recursive(root,token,cli_args.archive_name,header,Belongs_DiNode,child);
+          }
+
+        }
+      }
+    }
+    if(Belongs_DiNode != NULL)
+    {
+      // I have the DiNode that needs to be inserted
+    }
+    else
+    { 
+      
+      int current=0;
+      ret=metadata_get_block(cli_args.archive_name,header,0, my_block);
+      DiNode* stable_root=&my_block->table[0];
+
+      while(stable_root->next !=0)
+      {
+        block_to_fetch = stable_root->next / DiNodes_per_Block;
+        di_node_to_fetch = stable_root->next % DiNodes_per_Block;
+        if(current != block_to_fetch)
+        {
+          ret=metadata_get_block(cli_args.archive_name,header,block_to_fetch, my_block);
+          current=block_to_fetch;
+        }
+        stable_root=&my_block->table[di_node_to_fetch];
+      }
+      if(stable_root->numOf_free > 0 )
+      {
+
+      }
+
+      struct stat my_stat;
+
+      stat(cli_args.list_of_files[candidate], &my_stat);
+      bool is_dir = S_ISDIR(my_stat.st_mode);
+
+      if(is_dir)
+      {
+        DiNode* dir_inRoot = malloc(sizeof(DiNode));
+        
+        copy_to_DiNode(&my_stat, dir_inRoot);
+        strcpy(dir_inRoot->name, cli_args.list_of_files[candidate]);
+        dir_inRoot->next = 0;
+        dir_inRoot->numOf_free = NUMOF_CHILDS;
+        
+        update(&list, root, dir_inRoot);
+        dir_inRoot->isDir = true;
+        add_files_recursive(&list, dir_inRoot, header,false, cli_args.archive_name);
+        chdir("..");
+      } 
+      else  // It's not a dir, it's a file.
+      {
+        char working_dir[256];
+        getcwd(working_dir, 256);
+        
+        printf("Working dir:%s.\n", working_dir);
+        DiNode* file_inRoot = malloc(sizeof(DiNode));
+        
+        copy_to_DiNode(&my_stat, file_inRoot);
+        strcpy(file_inRoot->name, cli_args.list_of_files[candidate]);
+        file_inRoot->next = 0;
+        file_inRoot->numOf_free = NUMOF_CHILDS;
+        
+        update(&list, root, file_inRoot);
+        file_inRoot->isDir = false;
+        
+        file_inRoot->file_begining = header->Last_File;
+          
+        insert_file(header, cli_args.archive_name, cli_args.list_of_files[candidate]);
+      }
+    }
+  
+
+  }
+
+  
+
   
   return true;
 }
