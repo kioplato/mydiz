@@ -47,7 +47,7 @@ void metadata_add_DiNode(char* filename,Header* header,DiNode* DiNode_to_insert)
 			header->MetaData_Last_DiNode+=BLOCK_SIZE - dinode_index;
 		}
 
-		write(fd,DiNode_to_insert,sizeof(DiNode));         /* write in the file*/
+		write(fd, DiNode_to_insert, sizeof(DiNode));  /* write in the file*/
 
 		header->MetaData_Last_DiNode+= sizeof(DiNode);	      /* Update the pointer */
 
