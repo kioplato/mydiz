@@ -248,6 +248,7 @@ bool create_archive(Cli_args cli_args) {
   //closedir(opened_dir);
   close(fd);
   
+  header->numOf_DiNodes=list.numOf_nodes;
   write_header(filename,header);                 // Write Header in file
 
   return true;
@@ -405,13 +406,108 @@ bool print_metadata(char* filename,Header* header) {
   return true;
 }
 
-bool file_exists() {
+bool file_exists(Cli_args* cli_args,Header* header,char* filename) {
   
+  int32_t i,ret_getblock,count,DiNodes_per_Block;
+  Block* my_block;
+
+  my_block=malloc(sizeof(Block));
+  DiNodes_per_Block=BLOCK_SIZE / sizeof(DiNode);
+  my_block->table=malloc(DiNodes_per_Block*sizeof(DiNode));     // Initialize space for the Block
+  
+  bool* found=malloc(sizeof(bool)*cli_args->numOf_files);
+  for(int l=0; l<cli_args->numOf_files; l++)
+  {
+    found[l]=false;
+  }
+
+  i=0;
+  count=0;
+  ret_getblock=metadata_get_block(filename,header,i,my_block);
+  while(ret_getblock != -1)
+  {
+    for(int j=0;j<DiNodes_per_Block;j++)
+    {
+      if(count < header->numOf_DiNodes)
+      {
+        
+        for(int l=0; l<cli_args->numOf_files; l++)
+        {
+          if(strcmp(cli_args->list_of_files[l],my_block->table[j].name) == 0)
+          {
+            found[l]=true;
+            break;
+          }
+        }
+
+        count++;
+      }
+      else
+      {
+        break;
+      }
+    }
+    i++;
+    ret_getblock=metadata_get_block(filename,header,i,my_block);
+  }
+  
+  if(count == 0)
+  {
+    printf("No Meta Data is found, file .di is empty\n");
+  }
+  else
+  {
+    for(int l=0; l<cli_args->numOf_files; l++)
+    {
+      printf("%s",cli_args->list_of_files[l] );
+      if(found[l] == true)
+      {
+        printf(" exists\n");
+      }
+      else
+      {
+        printf(" doesn't exists\n");
+      }
+    }
+  }
+
+  free(my_block->table);
+  free(my_block);
   return true;
 }
 
-bool print_hierarchy() {
-  
+bool print_inside(char* filename,Header* header,uint32_t id_of_dinode,Block* my_block)
+{
+
+  return true;
+}
+
+bool print_hierarchy(char* filename,Header *header) {
+  int ret_getblock,DiNodes_per_Block;
+  Block* my_block;
+  DiNode* root;
+
+  my_block=malloc(sizeof(Block));
+  DiNodes_per_Block=BLOCK_SIZE / sizeof(DiNode);
+  my_block->table=malloc(DiNodes_per_Block*sizeof(DiNode)); 
+
+  ret_getblock=metadata_get_block(filename,header,0,my_block);
+  if(ret_getblock != -1)
+  {
+    root=&my_block->table[0];
+    do
+    {
+      for(int l=2;l<NUMOF_CHILDS;l++)
+      {
+        // root->isDir
+      }
+
+    }while(root->next != 0);
+  }
+
+    free(my_block->table);
+    free(my_block);
+
   return true;
 }
 
