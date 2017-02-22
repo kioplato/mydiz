@@ -46,13 +46,15 @@ bool update(List* list,DiNode* current_dinode,DiNode* new_dinode)
   
   while(temp->next != 0)
   {
-    temp_node=list->header_node;
-    int32_t Node_id=0;
+    temp_node=list->header_node->next_node;
     
-    while(Node_id < temp->next)
+    while(temp_node != NULL)
     {
+      if(temp_node->info->di_number[0] == temp->next)
+      {
+        break;
+      }    
       temp_node=temp_node->next_node;
-      Node_id++;
     }
     
     temp=temp_node->info;
@@ -69,20 +71,32 @@ bool update(List* list,DiNode* current_dinode,DiNode* new_dinode)
   }
   else // Parent Dir doesn't have space for the Child.
   {
+    
     DiNode* new_for_current=malloc(sizeof(DiNode));
-    new_dinode->numOf_free=NUMOF_CHILDS;
+    new_for_current->numOf_free=NUMOF_CHILDS;
+
+    strcpy(new_for_current->names[0].name,".");
+    new_for_current->di_number[0]=list->numOf_nodes;
+    new_for_current->numOf_free--;
+    // Set Parent.
+    strcpy(new_for_current->names[1].name,"..");
+    new_for_current->di_number[1]=current_dinode->di_number[0];
+    new_for_current->numOf_free--;
+
+
     //Put Child's Name.
-    strcpy(new_for_current->names[0].name,new_dinode->name);
+    strcpy(new_for_current->names[2].name,new_dinode->name);
     //Put Child's DiNode ID.
-    new_for_current->di_number[0]=new_dinode->di_number[0];
+    new_for_current->di_number[2]=new_dinode->di_number[0];
     
     new_for_current->numOf_free--;
     
     temp->next=list->numOf_nodes;
-    
-    printf("BEFORE PUSH in Update\n");
 
     push_dinode(list,new_for_current);
+    
+    temp_node=list->header_node;
+    
   }
   
   return true;
@@ -141,9 +155,22 @@ bool add_files_recursive(List* list, DiNode* current_dinode, Header* header, boo
 
 bool create_archive(Cli_args cli_args) {
   int32_t fd = open(cli_args.archive_name, O_WRONLY | O_CREAT, 0777);
+  char filename[50];
+
   Header* header = malloc(sizeof(Header));
-  write(fd, header, sizeof(Header));
-  
+
+  header->MetaData_Start=sizeof(Header);
+  header->MetaData_Last_DiNode=header->MetaData_Start;
+  header->Last_File=header->MetaData_Start;      // Initialize Header
+  header->numOf_DiNodes=100;
+
+  strcpy(filename,cli_args.archive_name);
+
+  fd=open(filename,O_CREAT|O_RDONLY,0777);        // Create the file
+  close(fd);
+
+  write_header(filename,header);                 // Write Header in file
+
   List list;
   list_init(&list);
   
@@ -156,9 +183,10 @@ bool create_archive(Cli_args cli_args) {
   strcpy(root->name, cli_args.archive_name);
   push_dinode(&list, root);
   root->next=0;
-  root->numOf_free=NUMOF_CHILDS;
+  root->numOf_free=NUMOF_CHILDS - 2;
+
   
-  print_list(&list);
+  // print_list(&list);
   
   /* TESTING */
   //DIR* opened_dir = NULL;
@@ -180,14 +208,14 @@ bool create_archive(Cli_args cli_args) {
   /* END OF TESTING */
 
   for(int32_t candidate = 0; candidate < cli_args.numOf_files; candidate++) {
-    /*DEBUG*/printf("Working on %d %s list_of_files.\n", candidate, cli_args.list_of_files[candidate]);
+    
     bool zipit = cli_args.j;
-    /*DEBUG*/printf("The %s needs to get compressed.\n", cli_args.list_of_files[candidate]);
+    
     struct stat my_stat;
 
     stat(cli_args.list_of_files[candidate], &my_stat);
     bool is_dir = S_ISDIR(my_stat.st_mode);
-    printf("%s is a dir: %d.\n", cli_args.list_of_files[candidate], is_dir);
+    
 
     if(is_dir)
     {
@@ -206,6 +234,7 @@ bool create_archive(Cli_args cli_args) {
     {
       char working_dir[256];
       getcwd(working_dir, 256);
+
       printf("Working dir:%s.\n", working_dir);
       DiNode* file_inRoot = malloc(sizeof(DiNode));
       
@@ -218,15 +247,15 @@ bool create_archive(Cli_args cli_args) {
       file_inRoot->isDir = false;
       
       if(zipit == true) {
-        printf("ZIPIT\n");
+        
         compress_file(cli_args.list_of_files[candidate]);
         strcat(cli_args.list_of_files[candidate], ".gz");
         
         insert_file(header, cli_args.archive_name, cli_args.list_of_files[candidate]);
       } else {
-        printf("NO ZIPIT\n");
+        
         //Path of the achive_file Kolpa twra.
-        printf("LIST_OF_FILE:%s.\n", cli_args.list_of_files[candidate]);
+        
         insert_file(header, cli_args.archive_name, cli_args.list_of_files[candidate]);
       }
     }
@@ -237,6 +266,8 @@ bool create_archive(Cli_args cli_args) {
   //closedir(opened_dir);
   close(fd);
   
+  write_header(filename,header);                 // Write Header in file
+
   return true;
 }
 
