@@ -297,8 +297,7 @@ bool create_archive(Cli_args cli_args) {
   return true;
 }
 
-bool append_recursive(DiNode* root,char* token,char* filename,Header* header,DiNode* Belongs_DiNode,uint32_t child)
-{
+bool append_recursive(DiNode* root, char* token, char* filename, Header* header, DiNode* Belongs_DiNode, uint32_t child) {
   char s[2] = "/";
   Block* my_block=malloc(sizeof(Block));
   int32_t block_to_fetch,di_node_to_fetch;
@@ -310,12 +309,44 @@ bool append_recursive(DiNode* root,char* token,char* filename,Header* header,DiN
 
   int32_t ret=metadata_get_block(filename,header,block_to_fetch, my_block);
 
-  token=strtok(NULL,s);
-  for(int32_t child = 2; child < (NUMOF_CHILDS - root->numOf_free); child++) 
-  {
-
+  for(int32_t candidate = 0; candidate < NUMOF_CHILDS; candidate++) {
+    strcpy(Belongs_DiNode->names[candidate].name, my_block->table[di_node_to_fetch].names[candidate].name);
+    Belongs_DiNode->di_number[candidate] = my_block->table[di_node_to_fetch].di_number[candidate];
   }
 
+  Belongs_DiNode->numOf_free = my_block->table[di_node_to_fetch].numOf_free;
+  Belongs_DiNode->next = my_block->table[di_node_to_fetch].next;
+
+  bool found_child = false;
+  token = strtok(NULL, s);
+  for(int32_t child = 2; child < (NUMOF_CHILDS - root->numOf_free); child++) 
+  {
+    if(strcmp(token,root->names[child].name) == 0)
+    {
+      append_recursive(root,token,filename,header,Belongs_DiNode,child);
+      found_child = true;
+    }
+  }
+
+  if(found_child == false) {
+    while(root->next != 0)
+    {
+      block_to_fetch = root->next / DiNodes_per_Block;
+      di_node_to_fetch = root->next % DiNodes_per_Block;
+
+      ret=metadata_get_block(filename, header, block_to_fetch, my_block);
+      root=&my_block->table[di_node_to_fetch];
+
+      for(int32_t child = 2; child < (NUMOF_CHILDS - root->numOf_free); child++) 
+      {
+        if(strcmp(token,root->names[child].name) == 0)
+        {
+          append_recursive(root, token, filename, header, Belongs_DiNode, child);
+        }
+      }
+    }
+  }
+  
   return true;
 }
 
@@ -358,7 +389,7 @@ bool append_file(Cli_args cli_args) {
 
     token = strtok(cli_args.list_of_files[candidate], s);
 
-    for(int32_t child = 2; child < (NUMOF_CHILDS - root->numOf_free); child++) 
+    for(int32_t child = 2; child < (NUMOF_CHILDS - root->numOf_free); child++)
     {
       if(strcmp(token,root->names[child].name) == 0)
       {
