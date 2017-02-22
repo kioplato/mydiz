@@ -483,7 +483,7 @@ bool uncompress_file(char* filename){
 
   if (fork() == 0)
   {
-    execvp("gunzip",(char *[]){ "gzip",filename,NULL });
+    execvp("gzip",(char *[]){ "gzip", "-dv", filename, (char*) NULL});
   }
   else
   {
