@@ -197,26 +197,6 @@ bool create_archive(Cli_args cli_args) {
   root->numOf_free=NUMOF_CHILDS - 2;
 
   
-  // print_list(&list);
-  
-  /* TESTING */
-  //DIR* opened_dir = NULL;
-  //opened_dir = opendir(cli_args.list_of_files[0]);
-  //chdir(cli_args.list_of_files[0]);
-  //struct dirent* file = NULL;
-  //while((file = readdir(opened_dir)) != NULL) {
-  //  if(strcmp(file->d_name, ".") != 0 && strcmp(file->d_name, "..") != 0) {
-  //    printf("Got from the %s dir the filename: %s\n", cli_args.list_of_files[0], file->d_name);
-  //    struct stat my_stat;
-  //    if(stat(file->d_name, &my_stat) == 0) {
-  //      printf("Success on stat.\n");
-  //    } else {
-  //      printf("Failed on stat.\n");
-  //    }
-  //    printf("It's a dir: %d.\n", S_ISDIR(my_stat.st_mode));
-  //  }
-  //}
-  /* END OF TESTING */
 
   for(int32_t candidate = 0; candidate < cli_args.numOf_files; candidate++) {
     
@@ -273,11 +253,13 @@ bool create_archive(Cli_args cli_args) {
   }
   
   print_list(&list);
-  
+
+  header->numOf_DiNodes=list.numOf_nodes;
+  printf("MetaData Start: %d, File End: %d, Meta Data End: %d, Num of DiNodes: %d\n",header->MetaData_Start,header->Last_File,header->MetaData_Last_DiNode,header->numOf_DiNodes );
+
   //closedir(opened_dir);
   close(fd);
   
-
   header->numOf_DiNodes = list.numOf_nodes;
 
   write_header(filename,header);                 // Write Header in file
