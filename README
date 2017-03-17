@@ -1,4 +1,4 @@
-# mydiz
+Mydiz
 Utility for storing and compressing files and directories.
 
 Our code is implemented in C language. In order to compile it, a configuration file for the make utility is
@@ -19,11 +19,9 @@ All the files that are kept in our .di compressed file are first compressed and 
 With this flag you can see the DiNode , the permissions , the owener and group of every file and directory that exists in the .di file.
 
 -q
-
 Followed by a list of arguments it answers if the the names of files and directories int the list exists in the .di file.
 
 -p
-
 It prints in an easily understanble way the hierarchy of the directories and files that are kept inside the   .di compressed file.
 
 -d
