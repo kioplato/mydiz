@@ -1,11 +1,5 @@
-Operating Systems
-4th Team Project
-
-Name/Surname: Platon-Nikolaos Kiorpelidis
-A.M.:1115201400327
-
-Name/Surname: Ioannis Efthymiou
-A.M.:11152011000023
+# mydiz
+Utility for storing and compressing files and directories.
 
 Our code is implemented in C language. In order to compile it, a configuration file for the make utility is
 provided, named Makefile. 
@@ -31,9 +25,6 @@ Followed by a list of arguments it answers if the the names of files and directo
 -p
 
 It prints in an easily understanble way the hierarchy of the directories and files that are kept inside the   .di compressed file.
-
--a
-We didn't finished the -a but we have created the " make space " function that operates efficiently and creates space in the middle for and grows the file in order to add more inside.
 
 -d
 As it is optional we didn't impelmented.
