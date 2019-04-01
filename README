@@ -1,6 +1,8 @@
 Mydiz
 Utility for storing and compressing files and directories.
 
+This project was awarded the title of the best assignment for the course Operating Systems.
+
 Our code is implemented in C language. In order to compile it, a configuration file for the make utility is
 provided, named Makefile. 
 
